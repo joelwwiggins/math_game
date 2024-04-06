@@ -1,0 +1,73 @@
+/* Reset some basic elements */
+body, h1, h2, h3, p, ul {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+header {
+    background: #333;
+    color: #fff;
+    padding-top: 30px;
+    min-height: 70px;
+    border-bottom: #0779e4 3px solid;
+}
+
+header h1 {
+    text-align: center;
+    margin: 0;
+    font-size: 24px;
+}
+
+nav {
+    display: flex;
+    background: #444;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    font-size: 18px;
+}
+
+nav a:hover {
+    background: #ddd;
+    color: #333;
+}
+
+main {
+    padding: 20px;
+    background: white;
+}
+
+footer {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+footer p {
+    margin: 0;
+}

@@ -1,80 +1,82 @@
-import random
-import time
-import json
-from dataclasses import dataclass, asdict
 from flask import Flask, render_template, request, redirect, url_for
+from dataclasses import dataclass, field
 import random
 import time
 import json
-from dataclasses import dataclass, asdict
-
 
 app = Flask(__name__)
 
 @dataclass
+class GameSession:
+    player_name: str
+    start_time: float = field(default_factory=time.time)
+    num1: int = field(default_factory=lambda: random.randint(1, 10))
+    num2: int = field(default_factory=lambda: random.randint(1, 10))
+    answer: int = field(init=False)
 
-class PlayerScore:
-    player: str
-    score: int
+    def __post_init__(self):
+        self.answer = self.num1 + self.num2
 
-    def to_dict(self):
-        return asdict(self)
-
+    def question(self):
+        return f"{self.num1} + {self.num2} = ?"
  
 
-def load_leaderboard():
-    try:
-        with open("leaderboard.json", "r") as f:
-            leaderboard = json.load(f)
-    except FileNotFoundError:
-        leaderboard = []
-    return leaderboard
+    @app.route('/')
+    def home():
+        return render_template('home.html')
 
-def save_leaderboard(leaderboard):
-    with open("leaderboard.json", "w") as f:
-        json.dump(leaderboard, f)
+    @app.route('/game', methods=['GET', 'POST'])
+    def game():
+        if request.method == 'POST':
+            player_name = request.form['player_name']
+            session = GameSession(player_name=player_name)
+            return redirect(url_for('play', session=session))
+        return render_template('game.html')
 
- 
-def update_leaderboard(leaderboard, player, score):
-    player_score = PlayerScore(player, score)
-    leaderboard.append(player_score.to_dict())
-    leaderboard.sort(key=lambda x: x["score"])
-    leaderboard = leaderboard[:3]
-    return leaderboard
+    @app.route('/play/<player_name>', methods=['GET', 'POST'])
+    def play(player_name):
+        # Note: For simplicity, a new session is created for each request.
+        # In a real application, consider using Flask's session management to persist state.
+        session = GameSession(player_name=player_name)
 
+        if request.method == 'POST':
+            user_answer = int(request.form['answer'])
+            if user_answer == session.answer:
+                # Correct answer, generate new question
+                return render_template('play.html', session=session, message="Correct! Try another one.")
+            else:
+                # Wrong answer, update leaderboard
+                leaderboard = load_leaderboard()
+                end_time = time.time()
+                time_taken = round(end_time - session.start_time, 2)
+                leaderboard = update_leaderboard(leaderboard, player_name, time_taken)
+                save_leaderboard(leaderboard)
+                return redirect(url_for('leaderboard'))
 
-def math_question():
-    num1 = random.randint(1, 10)
-    num2 = random.randint(1, 10)
-    answer = num1 + num2
-    question = f"{num1} + {num2} = ?"
-    return num1, num2, answer
+        # Starting or continuing a game
+        return render_template('play.html', session=session, message="")
 
+    @app.route('/leaderboard')
+    def leaderboard():
+        leaderboard = load_leaderboard()
+        return render_template('leaderboard.html', leaderboard=leaderboard)
 
-def main():
-    leaderboard = load_leaderboard()
-    name = input("What is your name? ")
-    correct = True
-    start_time = time.time()
-    while correct:
-        num1, num2, correct_answer = math_question()
-        print(f"Hello {name}! Let's play a math game! what is {num1} + {num2}?")
-        user_answer = int(input("Your answer: "))
-        if user_answer == correct_answer:
-            print(f"Correct!")
-        else:
-            correct = False
-            end_time = time.time()
-            time_taken = round(end_time - start_time, 2)
-            print(f"Wrong! The correct answer is {correct_answer}. It took you {time_taken} seconds.")
-            leaderboard = update_leaderboard(leaderboard, name, time_taken)
- 
-    save_leaderboard(leaderboard)
-    print("\nAll time best scores:")
-    for player_score in leaderboard:
-        player = player_score['player']
-        score = player_score['score']
-        print(f"{player}: {score}")
- 
-if __name__ == "__main__":
-    main()
+    def load_leaderboard():
+        try:
+            with open('leaderboard.json', 'r') as file:
+                leaderboard = json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            leaderboard = {}
+        return leaderboard
+    
+    def save_leaderboard(leaderboard):
+        with open('leaderboard.json', 'w') as file:
+            json.dump(leaderboard, file)
+
+    def update_leaderboard(leaderboard, player_name, time_taken):
+        if player_name not in leaderboard or time_taken < leaderboard[player_name]:
+            leaderboard[player_name] = time_taken
+        return leaderboard
+    
+    if __name__ == '__main__':
+        app.run(debug=True)
