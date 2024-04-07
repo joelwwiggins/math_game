@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Game</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        {% if 'game_session' in session %}
+            <h1>Welcome, {{ session['game_session']['player_name'] }}!</h1>
+            <p>Solve the math question:</p>
+            <h2>{{ session['game_session']['num1'] }} + {{ session['game_session']['num2'] }} = ?</h2>
+
+            {% if message %}
+                <div class="alert alert-info">{{ message }}</div>
+            {% endif %}
+
+            <form action="{{ url_for('play') }}" method="POST">
+                <div class="form-group">
+                    <label for="answer">Your Answer:</label>
+                    <input type="number" class="form-control" id="answer" name="answer" required autofocus>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Answer</button>
+            </form>
+        {% else %}
+            <p>No game session found. Please start a new game.</p>
+            <a href="{{ url_for('game') }}" class="btn btn-primary">Start New Game</a>
+        {% endif %}
+
+        <hr>
+
+        <a href="{{ url_for('home') }}" class="btn btn-warning">Back to Home</a>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
