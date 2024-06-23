@@ -54,8 +54,22 @@ def results():
     if 'player_name' not in session or 'game_id' not in session:
         return redirect(url_for('index'))
 
-    attempts = get_attempts(session['game_id'])
-    return render_template('results.html', attempts=attempts, player_name=session['player_name'], score=session['score'])
+    game_id = session['game_id']
+    player_name = session['player_name']
+    score = session['score']
+    attempts = get_attempts(game_id)
+
+    # Clear the session data after getting results
+    session.pop('game_id', None)
+    session.pop('score', None)
+
+    return render_template('results.html', attempts=attempts, player_name=player_name, score=score)
+
+def get_attempts(game_id):
+    conn = get_db_connection()
+    attempts = conn.execute('SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id', (game_id,)).fetchall()
+    conn.close()
+    return [attempt['answer_time'] for attempt in attempts]
 
 def create_player(name):
     conn = get_db_connection()
@@ -84,11 +98,7 @@ def record_attempt(game_id, answer_time):
     conn.commit()
     conn.close()
 
-def get_attempts(game_id):
-    conn = get_db_connection()
-    attempts = conn.execute('SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id', (game_id,)).fetchall()
-    conn.close()
-    return [attempt['answer_time'] for attempt in attempts]
+
 
 if __name__ == '__main__':
     app.run(debug=True)

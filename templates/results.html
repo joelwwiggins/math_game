@@ -3,11 +3,11 @@
 {% block title %}Math Game - Results{% endblock %}
 
 {% block content %}
-    <h2>Game Results for {{ player_name }}</h2>
-    <p>Final Score: {{ score }}</p>
-    <h3>Answer Times:</h3>
+    <h2>Adventure Results for {{ player_name }}</h2>
+    <p class="score">Final Score: {{ score }}</p>
+    <h3>Your Answer Times:</h3>
     <canvas id="speedChart" width="400" height="200"></canvas>
-    <a href="{{ url_for('index') }}" class="btn">Play Again</a>
+    <a href="{{ url_for('index') }}" class="btn">New Adventure</a>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -19,7 +19,8 @@
                 datasets: [{
                     label: 'Answer Time (seconds)',
                     data: {{ attempts|tojson }},
-                    borderColor: 'rgb(75, 192, 192)',
+                    borderColor: '#4a90e2',
+                    backgroundColor: 'rgba(74, 144, 226, 0.1)',
                     tension: 0.1
                 }]
             },
@@ -27,7 +28,23 @@
                 responsive: true,
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Time (seconds)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Question Number'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Your Answer Times'
                     }
                 }
             }

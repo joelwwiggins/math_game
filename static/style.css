@@ -1,60 +1,109 @@
+:root {
+    --background: #e0e5ec;
+    --text-color: #1f1f1f;
+    --shadow-light: #ffffff;
+    --shadow-dark: #a3b1c6;
+    --accent-color: #4a90e2;
+}
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', sans-serif;
     line-height: 1.6;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    background-color: var(--background);
+    color: var(--text-color);
+    background-image: url('https://example.com/relaxing-background.jpg');
+    background-size: cover;
+    background-attachment: fixed;
 }
 
-header, footer {
-    background-color: #333;
-    color: #fff;
-    text-align: center;
-    padding: 1rem;
-}
-
-main {
-    flex: 1;
-    padding: 2rem;
+.container {
     max-width: 800px;
-    margin: 0 auto;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: var(--background);
+    border-radius: 20px;
+    box-shadow: 
+        8px 8px 16px var(--shadow-dark),
+        -8px -8px 16px var(--shadow-light);
 }
 
 h1, h2 {
-    color: #333;
+    color: var(--accent-color);
+    text-align: center;
 }
 
 .btn {
     display: inline-block;
-    background-color: #333;
-    color: #fff;
-    padding: 0.5rem 1rem;
+    padding: 10px 20px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 50px;
+    background: var(--background);
+    color: var(--accent-color);
+    font-size: 1rem;
+    font-weight: bold;
     text-decoration: none;
-    border-radius: 5px;
-    margin-top: 1rem;
+    box-shadow: 
+        5px 5px 10px var(--shadow-dark),
+        -5px -5px 10px var(--shadow-light);
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    box-shadow: 
+        inset 5px 5px 10px var(--shadow-dark),
+        inset -5px -5px 10px var(--shadow-light);
 }
 
 .game-container {
-    background-color: #f4f4f4;
+    background: var(--background);
     padding: 2rem;
-    border-radius: 5px;
+    border-radius: 20px;
+    box-shadow: 
+        inset 5px 5px 10px var(--shadow-dark),
+        inset -5px -5px 10px var(--shadow-light);
     margin-bottom: 1rem;
 }
 
 .question {
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: bold;
+    text-align: center;
+    color: var(--accent-color);
 }
 
-input[type="number"] {
+input[type="text"], input[type="number"] {
     font-size: 1.2rem;
-    padding: 0.5rem;
-    width: 100px;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    border-radius: 50px;
+    background: var(--background);
+    box-shadow: 
+        inset 5px 5px 10px var(--shadow-dark),
+        inset -5px -5px 10px var(--shadow-light);
+    color: var(--text-color);
+    margin-bottom: 1rem;
 }
 
 .score {
     font-weight: bold;
     font-size: 1.2rem;
+    text-align: center;
+    color: var(--accent-color);
+}
+
+#speedChart {
+    background: var(--background);
+    border-radius: 20px;
+    padding: 1rem;
+    box-shadow: 
+        8px 8px 16px var(--shadow-dark),
+        -8px -8px 16px var(--shadow-light);
+    margin-bottom: 2rem;
 }

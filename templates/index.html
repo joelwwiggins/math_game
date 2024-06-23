@@ -3,7 +3,10 @@
 {% block title %}Math Game - Home{% endblock %}
 
 {% block content %}
-    <h2>Welcome to the Math Addition Game!</h2>
+    <h2>Welcome to the Math Adventure!</h2>
     <p>Test your addition skills with numbers from 0 to 10.</p>
-    <a href="{{ url_for('game') }}" class="btn">Start Game</a>
+    <form method="POST">
+        <input type="text" id="player_name" name="player_name" placeholder="Enter your name" required>
+        <button type="submit" class="btn">Start Your Adventure</button>
+    </form>
 {% endblock %}
