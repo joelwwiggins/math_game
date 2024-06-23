@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Math Game - Results{% endblock %}
+
+{% block content %}
+    <h2>Game Results for {{ player_name }}</h2>
+    <p>Final Score: {{ score }}</p>
+    <h3>Answer Times:</h3>
+    <canvas id="speedChart" width="400" height="200"></canvas>
+    <a href="{{ url_for('index') }}" class="btn">Play Again</a>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var ctx = document.getElementById('speedChart').getContext('2d');
+        var speedChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: {{ attempts|length }}}, (_, i) => i + 1),
+                datasets: [{
+                    label: 'Answer Time (seconds)',
+                    data: {{ attempts|tojson }},
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}

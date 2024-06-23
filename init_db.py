@@ -4,16 +4,31 @@ def init_db():
     conn = sqlite3.connect('math_game.db')
     c = conn.cursor()
 
-    # Create table
+    # Create tables
     c.execute('''
-        CREATE TABLE IF NOT EXISTS scores (
-            id INTEGER PRIMARY KEY,
-            score INTEGER NOT NULL
+        CREATE TABLE IF NOT EXISTS players (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL UNIQUE
         )
     ''')
 
-    # Insert initial score if not exists
-    c.execute('INSERT OR IGNORE INTO scores (id, score) VALUES (1, 0)')
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS games (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            player_id INTEGER,
+            score INTEGER NOT NULL,
+            FOREIGN KEY (player_id) REFERENCES players (id)
+        )
+    ''')
+
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS attempts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id INTEGER,
+            answer_time FLOAT NOT NULL,
+            FOREIGN KEY (game_id) REFERENCES games (id)
+        )
+    ''')
 
     conn.commit()
     conn.close()
