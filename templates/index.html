@@ -1,26 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Game</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link to your CSS file -->
-</head>
-<body>
-    <div class="container">
-        <h1>Welcome to the Math Game</h1>
-        <p>Enter your name to start the game:</p>
-        <input type="text" id="playerName" placeholder="Name">
-        <button onclick="startGame()">Start Game</button>
-        
-        <div id="gameArea" style="display: none;">
-            <h2>Question: <span id="question"></span></h2>
-            <input type="number" id="answer" placeholder="Your answer">
-            <button onclick="submitAnswer()">Submit</button>
-            <p id="feedback"></p>
-        </div>
-        <div id="leaderboard" class="leaderboard"></div>
-    </div>
-    <script src="script.js"></script> <!-- Link to your JavaScript file -->
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Math Game - Home{% endblock %}
+
+{% block content %}
+    <h2>Welcome to the Math Addition Game!</h2>
+    <p>Test your addition skills with numbers from 0 to 10.</p>
+    <a href="{{ url_for('game') }}" class="btn">Start Game</a>
+{% endblock %}
