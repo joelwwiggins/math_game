@@ -5,6 +5,20 @@ import os
 
 class MathGameTestCase(unittest.TestCase):
 
+    @pytest.fixture
+    def client():
+    db_fd, app.config['DATABASE'] = tempfile.mkstemp()
+    app.config['TESTING'] = True
+    app.config['WTF_CSRF_ENABLED'] = False  # Disable CSRF for testing
+
+    with app.test_client() as client:
+        with app.app_context():
+            init_db()  # Use the imported init_db function
+        yield client
+
+    os.close(db_fd)
+    os.unlink(app.config['DATABASE'])
+
     def setUp(self):
         self.db_fd, app.config['DATABASE'] = tempfile.mkstemp()
         app.config['TESTING'] = True

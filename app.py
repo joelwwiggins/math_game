@@ -1,15 +1,37 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, current_app, g
 import random
 import sqlite3
+from init_db import init_db
 import time
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Replace with a real secret key
 
+def get_db():
+    if 'db' not in g:
+        g.db = sqlite3.connect('math_game.db')
+        g.db.row_factory = sqlite3.Row
+    return g.db
+
 def get_db_connection():
     conn = sqlite3.connect('math_game.db')
     conn.row_factory = sqlite3.Row
+    # Initialize the database if it doesn't exist
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='players'")
+    if not cursor.fetchone():
+        init_db()
     return conn
+
+def close_db(e=None):
+    db = g.pop('db', None)
+    if db is not None:
+        db.close()
+
+def init_db():
+    db = get_db()
+    with current_app.open_resource('schema.sql', mode='r') as f:
+        db.executescript(f.read())
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
