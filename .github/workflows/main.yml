@@ -1,48 +1,40 @@
 name: Python application
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v2
-      with:
-        python-version: "3.10"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flask
-        pip install autopep8 black autoflake
-    - name: Run tests
-      run: |
-        python -m unittest test_app.py
-    - name: Auto-format Python code
-      run: |
-        autopep8 --in-place --recursive .
-        black .
-        autoflake --in-place --remove-all-unused-imports --remove-unused-variables --recursive .
-    - name: Commit changes
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add -A
-        git diff-index --quiet HEAD || git commit -m "Auto-format Python code"
-    - name: Push changes
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.ref }}
-    - name: Super-Linter
-      uses: super-linter/super-linter@v6.6.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        VALIDATE_PYTHON_PYLINT: true
-        VALIDATE_PYTHON_FLAKE8: true
-        DEFAULT_BRANCH: main
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lint with pylint
+        run: make lint
+
+      - name: Format code with black
+        run: make format
+
+      - name: Run tests with pytest
+        run: make test
+
+      - name: Clean up
+        run: make clean
 
 
