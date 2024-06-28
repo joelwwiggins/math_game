@@ -24,3 +24,6 @@ jobs:
     - name: Run tests
       run: |
         python -m unittest test_app.py
+                    
+    - name: Super-Linter
+      uses: super-linter/super-linter@v6.6.0
