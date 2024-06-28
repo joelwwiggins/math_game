@@ -1,4 +1,5 @@
-name: Python application
+name: CI Pipeline
+
 on:
   push:
     branches:
@@ -23,18 +24,23 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r math_game/requirements.txt
 
       - name: Lint with pylint
-        run: make lint
+        run: |
+          pip install pylint
+          pylint math_game
 
       - name: Format code with black
-        run: make format
+        run: |
+          pip install black
+          black math_game --check
 
       - name: Run tests with pytest
-        run: make test
+        run: |
+          pip install pytest
+          pytest test_app.py
 
       - name: Clean up
-        run: make clean
-
-
+        run: |
+          echo "Clean up handled by GitHub Actions"
