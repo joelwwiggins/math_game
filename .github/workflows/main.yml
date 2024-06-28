@@ -26,15 +26,17 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Format code with black
+        run: |
+          pip install black
+          black math_game --check
+
       - name: Lint with pylint
         run: |
           pip install pylint
           find . -type f -name "*.py" | xargs pylint
 
-      - name: Format code with black
-        run: |
-          pip install black
-          black math_game --check
+
 
       - name: Run tests with pytest
         run: |
