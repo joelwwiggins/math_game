@@ -27,3 +27,11 @@ jobs:
                     
     - name: Super-Linter
       uses: super-linter/super-linter@v6.6.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VALIDATE_PYTHON_PYLINT: true
+        VALIDATE_PYTHON_FLAKE8: true
+        DEFAULT_BRANCH: main
+        LINTER_RULES_PATH: /
+        PYTHON_PYLINT_CONFIG_FILE: .pylintrc
+        PYTHON_FLAKE8_CONFIG_FILE: .flake8
