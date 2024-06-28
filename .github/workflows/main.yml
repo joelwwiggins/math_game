@@ -29,7 +29,9 @@ jobs:
       - name: Format code with black
         run: |
           
-          black math_game --check
+          black . --check
+        working-directory: math_game
+          
 
       - name: Lint with pylint
         run: |
