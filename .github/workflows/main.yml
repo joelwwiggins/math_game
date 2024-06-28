@@ -29,8 +29,8 @@ jobs:
       - name: Format code with black
         run: |
           
-          black . --check
-        working-directory: math_game
+          find . -type f -name "*.py" | xargs black --check  
+        
           
 
       - name: Lint with pylint
