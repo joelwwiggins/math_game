@@ -1,27 +1,18 @@
-from flask import Flask, render_template, request, redirect, url_for, session, current_app, g
+from flask import Flask, render_template, request, redirect, url_for, session, g
 import random
 import sqlite3
-from init_db import init_db
+from init_db import init_db as initialize_database
 import time
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Replace with a real secret key
+app.config['DATABASE'] = 'math_game.db'
 
 def get_db():
     if 'db' not in g:
-        g.db = sqlite3.connect('math_game.db')
+        g.db = sqlite3.connect(app.config['DATABASE'])
         g.db.row_factory = sqlite3.Row
     return g.db
-
-def get_db_connection():
-    conn = sqlite3.connect('math_game.db')
-    conn.row_factory = sqlite3.Row
-    # Initialize the database if it doesn't exist
-    cursor = conn.cursor()
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='players'")
-    if not cursor.fetchone():
-        init_db()
-    return conn
 
 def close_db(e=None):
     db = g.pop('db', None)
@@ -29,9 +20,8 @@ def close_db(e=None):
         db.close()
 
 def init_db():
-    db = get_db()
-    with current_app.open_resource('schema.sql', mode='r') as f:
-        db.executescript(f.read())
+    with app.app_context():
+        initialize_database(app.config['DATABASE'])
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -50,6 +40,8 @@ def game():
     if 'game_id' not in session:
         session['game_id'] = create_game(session['player_name'])
         session['score'] = 0
+
+    if 'start_time' not in session:
         session['start_time'] = time.time()
 
     if request.method == 'POST':
@@ -88,39 +80,37 @@ def results():
     return render_template('results.html', attempts=attempts, player_name=player_name, score=score)
 
 def get_attempts(game_id):
-    conn = get_db_connection()
-    attempts = conn.execute('SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id', (game_id,)).fetchall()
-    conn.close()
+    db = get_db()
+    attempts = db.execute('SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id', (game_id,)).fetchall()
     return [attempt['answer_time'] for attempt in attempts]
 
 def create_player(name):
-    conn = get_db_connection()
-    conn.execute('INSERT OR IGNORE INTO players (name) VALUES (?)', (name,))
-    conn.commit()
-    conn.close()
+    db = get_db()
+    db.execute('INSERT OR IGNORE INTO players (name) VALUES (?)', (name,))
+    db.commit()
 
 def create_game(player_name):
-    conn = get_db_connection()
-    player_id = conn.execute('SELECT id FROM players WHERE name = ?', (player_name,)).fetchone()['id']
-    cursor = conn.execute('INSERT INTO games (player_id, score) VALUES (?, 0)', (player_id,))
+    db = get_db()
+    player_id = db.execute('SELECT id FROM players WHERE name = ?', (player_name,)).fetchone()['id']
+    cursor = db.execute('INSERT INTO games (player_id, score) VALUES (?, 0)', (player_id,))
     game_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
+    db.commit()
     return game_id
 
 def update_score(game_id, score):
-    conn = get_db_connection()
-    conn.execute('UPDATE games SET score = ? WHERE id = ?', (score, game_id))
-    conn.commit()
-    conn.close()
+    db = get_db()
+    db.execute('UPDATE games SET score = ? WHERE id = ?', (score, game_id))
+    db.commit()
 
 def record_attempt(game_id, answer_time):
-    conn = get_db_connection()
-    conn.execute('INSERT INTO attempts (game_id, answer_time) VALUES (?, ?)', (game_id, answer_time))
-    conn.commit()
-    conn.close()
+    db = get_db()
+    db.execute('INSERT INTO attempts (game_id, answer_time) VALUES (?, ?)', (game_id, answer_time))
+    db.commit()
 
-
+@app.teardown_appcontext
+def teardown_db(exception):
+    close_db()
 
 if __name__ == '__main__':
+    init_db()
     app.run(debug=True)

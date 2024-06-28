@@ -1,7 +1,7 @@
 import sqlite3
 
-def init_db():
-    conn = sqlite3.connect('math_game.db')
+def init_db(db_path='math_game.db'):
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
 
     # Create tables
@@ -32,8 +32,6 @@ def init_db():
 
     conn.commit()
     conn.close()
-
-    print("Database initialized successfully.")
 
 if __name__ == '__main__':
     init_db()
