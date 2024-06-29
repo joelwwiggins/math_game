@@ -1,60 +1,24 @@
 name: Python application
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
     - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - name: Set up Python 3.10.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: " 3.10.8"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+
+    - name: Build Docker image
+      run: docker build -t myapp .
+
     - name: Run tests
-      run: |
-        python -m unittest test_app.py
-    # - name: Run Pylint and fix errors
-    #   run: |
-    #     pylint_runner --output-format=parseable | tee pylint.txt
-    #     autopep8 --in-place --aggressive --aggressive --select=E,W1,W2,W3 --recursive .
-    # - name: Auto-format Python code
-    #   run: |
-    #     autopep8 --in-place --recursive .
-    #     black .
-    #     autoflake --in-place --remove-all-unused-imports --remove-unused-variables --recursive .
-    # - name: Commit changes
-    #   run: |
-    #     git config --local user.email "github-actions[bot]@users.noreply.github.com"
-    #     git config --local user.name "github-actions[bot]"
-    #     git add -A
-    #     git diff-index --quiet HEAD || git commit -m "Auto-format Python code and fix Pylint errors"
-    # - name: Push changes
-    #   run: |
-    #     if [[ `git status --porcelain` ]]; then
-    #       git push
-    #     else
-    #       echo "No changes to commit"
-    #     fi
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Set PYTHONPATH
-      run: echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
-    - name: Set up environment for Super-Linter
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-    - name: Super-Linter
+      run: docker run myapp python -m unittest test_app.py
+
+    - name: Run Super-Linter
       uses: super-linter/super-linter@v6.6.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,5 +26,6 @@ jobs:
         VALIDATE_PYTHON_FLAKE8: true
         DEFAULT_BRANCH: main
         ACTIONS_RUNNER_DEBUG: true
+        FILTER_REGEX_EXCLUDE: .*/(venv|.venv)/.*
       
         
