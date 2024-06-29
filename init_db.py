@@ -1,18 +1,22 @@
+""" This script initializes the database for the math game. """
+
 import sqlite3
 
+
 def init_db(db_path='math_game.db'):
+    """Initialize the database."""
     conn = sqlite3.connect(db_path)
-    c = conn.cursor()
+    car = conn.cursor()
 
     # Create tables
-    c.execute('''
+    car.execute('''
         CREATE TABLE IF NOT EXISTS players (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE
         )
     ''')
 
-    c.execute('''
+    car.execute('''
         CREATE TABLE IF NOT EXISTS games (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             player_id INTEGER,
@@ -21,7 +25,7 @@ def init_db(db_path='math_game.db'):
         )
     ''')
 
-    c.execute('''
+    car.execute('''
         CREATE TABLE IF NOT EXISTS attempts (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             game_id INTEGER,
