@@ -22,6 +22,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install flask
         pip install autopep8 black autoflake pylint pylint_runner
+        pip install -r requirements.txt
     - name: Run tests
       run: |
         python -m unittest test_app.py
