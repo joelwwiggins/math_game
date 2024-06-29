@@ -61,7 +61,8 @@ def game():
     session['num1'] = random.randint(0, 10)
     session['num2'] = random.randint(0, 10)
 
-    return render_template('game.html', num1=session['num1'], num2=session['num2'], score=session['score'], player_name=session['player_name'])
+    return render_template('game.html', num1=session['num1'], num2=session['num2'],
+                            score=session['score'], player_name=session['player_name'])
 
 @app.route('/results')
 def results():
@@ -77,11 +78,13 @@ def results():
     session.pop('game_id', None)
     session.pop('score', None)
 
-    return render_template('results.html', attempts=attempts, player_name=player_name, score=score)
+    return render_template('results.html', attempts=attempts,
+                            player_name=player_name, score=score)
 
 def get_attempts(game_id):
     db = get_db()
-    attempts = db.execute('SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id', (game_id,)).fetchall()
+    attempts = db.execute('SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id',
+                           (game_id,)).fetchall()
     return [attempt['answer_time'] for attempt in attempts]
 
 def create_player(name):
