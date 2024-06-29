@@ -26,30 +26,30 @@ jobs:
     - name: Run tests
       run: |
         python -m unittest test_app.py
-    - name: Run Pylint and fix errors
-      run: |
-        pylint_runner --output-format=parseable | tee pylint.txt
-        autopep8 --in-place --aggressive --aggressive --select=E,W1,W2,W3 --recursive .
-    - name: Auto-format Python code
-      run: |
-        autopep8 --in-place --recursive .
-        black .
-        autoflake --in-place --remove-all-unused-imports --remove-unused-variables --recursive .
-    - name: Commit changes
-      run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
-        git add -A
-        git diff-index --quiet HEAD || git commit -m "Auto-format Python code and fix Pylint errors"
-    - name: Push changes
-      run: |
-        if [[ `git status --porcelain` ]]; then
-          git push
-        else
-          echo "No changes to commit"
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # - name: Run Pylint and fix errors
+    #   run: |
+    #     pylint_runner --output-format=parseable | tee pylint.txt
+    #     autopep8 --in-place --aggressive --aggressive --select=E,W1,W2,W3 --recursive .
+    # - name: Auto-format Python code
+    #   run: |
+    #     autopep8 --in-place --recursive .
+    #     black .
+    #     autoflake --in-place --remove-all-unused-imports --remove-unused-variables --recursive .
+    # - name: Commit changes
+    #   run: |
+    #     git config --local user.email "github-actions[bot]@users.noreply.github.com"
+    #     git config --local user.name "github-actions[bot]"
+    #     git add -A
+    #     git diff-index --quiet HEAD || git commit -m "Auto-format Python code and fix Pylint errors"
+    # - name: Push changes
+    #   run: |
+    #     if [[ `git status --porcelain` ]]; then
+    #       git push
+    #     else
+    #       echo "No changes to commit"
+    #     fi
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Super-Linter
       uses: super-linter/super-linter@v6.6.0
       env:
