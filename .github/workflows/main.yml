@@ -21,6 +21,7 @@ jobs:
     - name: Run pylint
       run: docker run myapp pylint app.py
       
-      
+    - name: run security scan
+      run: docker run myapp bandit -r app.py
       
         
