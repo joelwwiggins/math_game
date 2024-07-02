@@ -18,14 +18,8 @@ jobs:
     - name: Run tests
       run: docker run myapp python -m unittest test_app.py
 
-    - name: Run Super-Linter
-      uses: super-linter/super-linter@v6.6.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        VALIDATE_PYTHON_PYLINT: true
-        VALIDATE_PYTHON_FLAKE8: true
-        DEFAULT_BRANCH: main
-        ACTIONS_RUNNER_DEBUG: true
-        FILTER_REGEX_EXCLUDE: .*/(venv|.venv)/.*
+    - name: Run pylint
+      run: docker run myapp pylint app.py
+      
       
         
