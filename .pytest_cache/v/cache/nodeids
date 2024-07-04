@@ -1,0 +1,5 @@
+[
+  "test_app.py::MathGameTestCase::test_correct_answer",
+  "test_app.py::MathGameTestCase::test_game_page",
+  "test_app.py::MathGameTestCase::test_index_page"
+]
