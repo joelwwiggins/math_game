@@ -6,12 +6,14 @@ It includes functions for database operations, game logic, and route handling.
 import random
 import sqlite3
 import time
+import os
+from dotenv import load_dotenv
 
 from flask import Flask, render_template, request, redirect, url_for, session, g
 from init_db import init_db as initialize_database
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Replace with a real secret key
+app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')  # Replace with a real secret key
 app.config['DATABASE'] = 'math_game.db'
 
 def get_db():
@@ -136,4 +138,4 @@ def teardown_db(_exception):
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True)
+    app.run(debug=False)
