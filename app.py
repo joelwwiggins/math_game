@@ -7,7 +7,7 @@ import random
 import sqlite3
 import time
 import os
-from dotenv import load_dotenv
+import dotenv
 
 from flask import Flask, render_template, request, redirect, url_for, session, g
 from init_db import init_db as initialize_database
