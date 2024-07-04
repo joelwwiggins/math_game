@@ -13,5 +13,5 @@ Werkzeug==3.0.1
 Flask-Cors==4.0.1
 Flask-Session==0.8.0
 Bandit==1.7.0
-dotenv==0.19.1
+python-dotenv==0.19.1
 os==0.1.0
