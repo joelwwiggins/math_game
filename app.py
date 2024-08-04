@@ -14,7 +14,10 @@ from init_db import init_db as initialize_database
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')
-app.config['DATABASE'] = 'math_game.db'
+app.config['DATABASE'] = '/mnt/math_game.db'
+
+def ensure_db_directory():
+    os.makedirs(os.path.dirname(app.config['DATABASE']), exist_ok=True)
 
 def get_db():
     """Get or create a database connection."""
@@ -137,5 +140,6 @@ def teardown_db(_exception):
     close_db()
 
 if __name__ == '__main__':
+    ensure_db_directory()
     init_db()
     app.run(host='0.0.0.0', port=80)
