@@ -17,6 +17,7 @@ app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')
 app.config['DATABASE'] = '/mnt/math_game.db'
 
 def ensure_db_directory():
+    """Ensure the directory for the database exists."""
     os.makedirs(os.path.dirname(app.config['DATABASE']), exist_ok=True)
 
 def get_db():
