@@ -21,15 +21,19 @@ def ensure_db_directory():
     os.makedirs(os.path.dirname(app.config['DATABASE']), exist_ok=True)
 
 def get_db():
-    """Get or create a database connection."""
-    if 'db' not in g:
-        g.db = sqlite3.connect(app.config['DATABASE'])
-        g.db.row_factory = sqlite3.Row
-    return g.db
+    """Get or create a database connection.
+    Returns:
+        sqlite3.Connection: The database connection object.
+    """
+    # pylint: disable=assigning-non-slot
+    if 'database' not in g:
+        g.database = sqlite3.connect(app.config['DATABASE'])
+        g.database.row_factory = sqlite3.Row
+    return g.database
 
 def close_db(_error=None):
     """Close the database connection."""
-    database = g.pop('db', None)
+    database = g.pop('database', None)
     if database is not None:
         database.close()
 
