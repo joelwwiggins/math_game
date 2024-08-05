@@ -14,7 +14,7 @@ from init_db import init_db as initialize_database
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')
-app.config['DATABASE'] = '/mnt/math_game.db'
+app.config['DATABASE'] = '/mathgamedirectory/math_game.db'
 
 def ensure_db_directory():
     """Ensure the directory for the database exists."""
@@ -147,4 +147,4 @@ def teardown_db(_exception):
 if __name__ == '__main__':
     ensure_db_directory()
     init_db()
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='127.0.0.1', port=80)
