@@ -147,4 +147,4 @@ def teardown_db(_exception):
 if __name__ == '__main__':
     ensure_db_directory()
     init_db()
-    app.run(host='127.0.0.1', port=80)
+    app.run(host='0.0.0.0', port=80)
