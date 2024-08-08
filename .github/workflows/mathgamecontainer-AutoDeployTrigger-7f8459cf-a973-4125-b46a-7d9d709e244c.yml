@@ -44,38 +44,38 @@ jobs:
         with:
           containerAppName: mathgamecontainer
           resourceGroup: mathgameresource
-          imageToDeploy: mathgameregistry.azurecr.io/mathgamecontainer:${{ github.sha }}
-          ingress:
-            external: true
-            targetPort: 80
-          registries:
-            - server: mathgameregistry.azurecr.io
-              username: ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }}
-              password: ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }}
-          template:
-            containers:
-              - image: mathgameregistry.azurecr.io/mathgamecontainer:${{ github.sha }}
-                name: mathgamecontainer
-                env:
-                  - name: DOTNET_ENVIRONMENT
-                    value: Production
-                  - name: WEBSITES_PORT
-                    value: "80"
-                  - name: AZURE_STORAGE_ACCOUNT_NAME
-                    value: "${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}"
-                  - name: AZURE_STORAGE_ACCOUNT_KEY
-                    value: "${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"
-                  - name: FILE_SHARE_NAME
-                    value: "${{ secrets.FILE_SHARE_NAME }}"
-                volumeMounts:
-                  - mountPath: /mnt/azure
-                    volumeName: azure-file-share
-          scale:
-            minReplicas: 1
-            maxReplicas: 1
-          volumes:
-            - name: azure-file-share
-              azureFile:
-                shareName: "${{ secrets.FILE_SHARE_NAME }}"
-                storageAccountName: "${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}"
-                storageAccountKey: "${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"
+          imageToDeploy: mathgameregistry.azurecr.io/mathgamecontainer:${{ github.sha }}           
+        ingress:
+              external: true
+              targetPort: 80
+              registries:
+                - server: mathgameregistry.azurecr.io
+                  username: ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }}
+                  password: ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }}
+              template:
+                containers:
+                  - image: mathgameregistry.azurecr.io/mathgamecontainer:${{ github.sha }}
+                    name: mathgamecontainer
+                    env:
+                      - name: DOTNET_ENVIRONMENT
+                        value: Production
+                      - name: WEBSITES_PORT
+                        value: "80"
+                      - name: AZURE_STORAGE_ACCOUNT_NAME
+                        value: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+                      - name: AZURE_STORAGE_ACCOUNT_KEY
+                        value: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
+                      - name: FILE_SHARE_NAME
+                        value: ${{ secrets.FILE_SHARE_NAME }}
+                    volumeMounts:
+                      - mountPath: /mnt/azure
+                        volumeName: azure-file-share
+              scale:
+                minReplicas: 1
+                maxReplicas: 1
+              volumes:
+                - name: azure-file-share
+                  azureFile:
+                    shareName: ${{ secrets.FILE_SHARE_NAME }}
+                    storageAccountName: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+                    storageAccountKey: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
