@@ -40,22 +40,9 @@ jobs:
           resourceGroup: mathgameresource
           imageToBuild: mathgameregistry.azurecr.io/mathgamecontainer:${{ github.sha }}
 
-      - name: Deploy to Azure Container Apps with Volume Mount
+      - name: Deploy to Azure Container Apps with YAML Config
         uses: azure/container-apps-deploy-action@v2
         with:
           containerAppName: mathgamecontainer
           resourceGroup: mathgameresource
-          imageToBuild: mathgameregistry.azurecr.io/mathgamecontainer:${{ github.sha }}
-          environmentVariables: |
-            AZURE_STORAGE_ACCOUNT_NAME=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-            AZURE_STORAGE_ACCOUNT_KEY=${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-            FILE_SHARE_NAME=${{ secrets.FILE_SHARE_NAME }}
-          volumes: |
-            - name: azure-file-share
-              azureFile:
-                shareName: ${{ secrets.FILE_SHARE_NAME }}
-                storageAccountName: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-                storageAccountKey: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-          volumeMounts: |
-            - mountPath: /mnt/azure
-              volumeName: azure-file-share
+          yamlConfigPath: ${{ github.workspace }}/containerapp.yaml
