@@ -1,6 +1,5 @@
 name: Trigger auto deployment for mathgamecontainer
 
-# When this action will be executed
 on:
   push:
     branches: 
@@ -14,8 +13,8 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions: 
-      id-token: write # This is required for requesting the OIDC JWT Token
-      contents: read # Required when GH token is used to authenticate with private repo
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout to the branch
