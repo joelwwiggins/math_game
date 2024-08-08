@@ -1,5 +1,5 @@
 properties:
-  managedEnvironmentId: /subscriptions/990b7133-9bc1-4da1-9836-8b8a4897475f/resourceGroups/mathgameresource/providers/Microsoft.App/managedEnvironments/mathgameeditor
+  environmentId: /subscriptions/990b7133-9bc1-4da1-9836-8b8a4897475f/resourceGroups/mathgameresource/providers/Microsoft.App/managedEnvironments/managedEnvironment-mathgameresourc-80c5
   configuration:
     ingress:
       external: true
