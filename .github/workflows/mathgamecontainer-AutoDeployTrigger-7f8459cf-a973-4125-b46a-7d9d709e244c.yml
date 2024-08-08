@@ -44,4 +44,4 @@ jobs:
         with:
           containerAppName: mathgamecontainer
           resourceGroup: mathgameresource
-          yamlConfigPath: ./container-app-config.yml
+          yamlConfigPath: .github/workflows/container-app-config.yml
