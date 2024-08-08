@@ -21,6 +21,9 @@ jobs:
       - name: Checkout to the branch
         uses: actions/checkout@v2
 
+      - name: Verify containerapp.yaml file exists
+        run: ls -al .github/workflows
+
       - name: Azure Login
         uses: azure/login@v1
         with:
@@ -45,4 +48,4 @@ jobs:
         with:
           containerAppName: mathgamecontainer
           resourceGroup: mathgameresource
-          yamlConfigPath: ${{ github.workspace }}/containerapp.yaml
+          yamlConfigPath: ${{ github.workspace }}/.github/workflows/containerapp.yaml
