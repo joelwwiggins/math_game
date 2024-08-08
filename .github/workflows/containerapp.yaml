@@ -1,0 +1,20 @@
+properties:
+  containers:
+    - image: mathgameregistry.azurecr.io/mathgamecontainer:latest
+      name: mathgamecontainer
+      env:
+        - name: AZURE_STORAGE_ACCOUNT_NAME
+          value: "${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}"
+        - name: AZURE_STORAGE_ACCOUNT_KEY
+          value: "${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"
+        - name: FILE_SHARE_NAME
+          value: "${{ secrets.FILE_SHARE_NAME }}"
+      volumeMounts:
+        - mountPath: /mnt/azure
+          volumeName: azure-file-share
+  volumes:
+    - name: azure-file-share
+      azureFile:
+        shareName: "${{ secrets.FILE_SHARE_NAME }}"
+        storageAccountName: "${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}"
+        storageAccountKey: "${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"
