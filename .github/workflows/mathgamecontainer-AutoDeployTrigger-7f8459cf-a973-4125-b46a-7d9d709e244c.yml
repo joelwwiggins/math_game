@@ -39,45 +39,9 @@ jobs:
           resourceGroup: mathgameresource
           imageToBuild: mathgameregistry.azurecr.io/mathgamecontainer:${{ github.sha }}
 
-      - name: Deploy to Azure Container Apps with Inline Config
+      - name: Deploy to Azure Container Apps with YAML Config
         uses: azure/container-apps-deploy-action@v2
         with:
           containerAppName: mathgamecontainer
           resourceGroup: mathgameresource
-          inlineConfig: |
-            properties:
-              managedEnvironmentId: /subscriptions/6464be07-b9a1-4dc7-84fd-ca21b3680e33/resourceGroups/mathgameresource/providers/Microsoft.App/managedEnvironments/mathgameeditor
-              configuration:
-                ingress:
-                  external: true
-                  targetPort: 80
-                registries:
-                  - server: mathgameregistry.azurecr.io
-                    username: mathgameregistry
-                template:
-                  containers:
-                    - image: mathgameregistry.azurecr.io/mathgamecontainer:${{ github.sha }}
-                      name: mathgamecontainer
-                      env:
-                        - name: DOTNET_ENVIRONMENT
-                          value: Production
-                        - name: WEBSITES_PORT
-                          value: "80"
-                        - name: AZURE_STORAGE_ACCOUNT_NAME
-                          value: "${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}"
-                        - name: AZURE_STORAGE_ACCOUNT_KEY
-                          value: "${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"
-                        - name: FILE_SHARE_NAME
-                          value: "${{ secrets.FILE_SHARE_NAME }}"
-                      volumeMounts:
-                        - mountPath: /mnt/azure
-                          volumeName: azure-file-share
-                  scale:
-                    minReplicas: 1
-                    maxReplicas: 1
-                  volumes:
-                    - name: azure-file-share
-                      azureFile:
-                        shareName: "${{ secrets.FILE_SHARE_NAME }}"
-                        storageAccountName: "${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}"
-                        storageAccountKey: "${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"
+          yamlConfigPath: ./container-app-config.yml
