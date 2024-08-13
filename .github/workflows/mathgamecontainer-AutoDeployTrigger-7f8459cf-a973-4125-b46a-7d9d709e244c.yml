@@ -43,15 +43,9 @@ jobs:
           imageToBuild: mathgameregistry.azurecr.io/mathgamecontainer:${{ github.sha }}
           _buildArgumentsKey_: |
             _buildArgumentsValues_
-          volumeMounts: |
-            - mountPath: /mnt/data
-              storageType: AzureFile
-              storageName: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-          volumes: |
-            - name: mathgame-volume
-              storageType: AzureFile
-              storageName: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-              shareName: ${{ secrets.FILE_SHARE_NAME }}
-              storageAccessKey: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-
+      - name: Update Container App with Volume
+        run: |
+          az containerapp update -n mathgamecontainer -g mathgameresource \
+          --set-volume-mounts '[{"mountPath":"/mnt/data","volumeName":"mathgame-volume"}]' \
+          --set-volumes '[{"name":"mathgame-volume","storageType":"AzureFile","storageAccountName":"${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}","shareName":"${{ secrets.FILE_SHARE_NAME }}","storageAccountKey":"${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"}]'
 
