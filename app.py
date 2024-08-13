@@ -14,7 +14,7 @@ from init_db import init_db as initialize_database
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')
-app.config['DATABASE'] = '/mnt/mathgamefilesharemount/mathgamedirectory/math_game.db'
+app.config['DATABASE'] = '/mnt/db/math_game.db'
 
 def get_db():
     """Get or create a database connection."""
