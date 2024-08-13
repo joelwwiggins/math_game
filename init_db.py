@@ -3,7 +3,7 @@
 import sqlite3
 
 
-def init_db(db_path='math_game.db'):
+def init_db(db_path='/mnt/mathgamefilesharemount/mathgamedirectory/math_game.db'):
     """Initialize the database."""
     conn = sqlite3.connect(db_path)
     car = conn.cursor()

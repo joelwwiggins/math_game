@@ -51,5 +51,5 @@ jobs:
       - name: Set Volume Mount
         run: |
           az containerapp update -n mathgamecontainer -g mathgameresource --set \
-          configuration.volumeMounts='[{"mountPath":"/mnt/data","volumeName":"mathgamevolumemount"}]'
+          configuration.volumeMounts='[{"mountPath":"/mnt/db","volumeName":"mathgamevolumemount"}]'
 
