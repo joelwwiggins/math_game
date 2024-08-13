@@ -46,10 +46,10 @@ jobs:
       - name: Update Container App with Volume
         run: |
           az containerapp update -n mathgamecontainer -g mathgameresource --set \
-          configuration.volumes='[{"name":"mathgame-volume","storageType":"AzureFile","azureFile":{"shareName":"${{ secrets.FILE_SHARE_NAME }}","storageAccountName":"${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}","storageAccountKey":"${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"}}]'
+          configuration.volumes='[{"name":"mathgamevolumemount","storageType":"AzureFile","azureFile":{"shareName":"${{ secrets.FILE_SHARE_NAME }}","storageAccountName":"${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}","storageAccountKey":"${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"}}]'
 
       - name: Set Volume Mount
         run: |
           az containerapp update -n mathgamecontainer -g mathgameresource --set \
-          configuration.volumeMounts='[{"mountPath":"/mnt/data","volumeName":"mathgame-volume"}]'
+          configuration.volumeMounts='[{"mountPath":"/mnt/data","volumeName":"mathgamevolumemount"}]'
 
