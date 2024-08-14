@@ -42,12 +42,8 @@ def close_db(_error=None):
 def init_db():
     """Initialize the database."""
     db_path = app.config['DATABASE']
-    if not os.path.exists(db_path):
-        with app.app_context():
-            initialize_database(db_path)
-            logger.info("Database created at '%s'.", db_path)
-    else:
-        logger.info("Database already exists at '%s'.", db_path)
+    initialize_database(db_path)
+    logger.info("Database initialized at '%s'.", db_path)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():

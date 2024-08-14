@@ -79,6 +79,50 @@ class MathGameTestCase(unittest.TestCase):
         self.assertIn(b'Adventure Results for TestPlayer', response.data)
         self.assertIn(b'Final Score: 5', response.data)
 
+    def test_create_player(self):
+        """Test player creation in the database."""
+        with app.app_context():
+            db = get_db()
+            db.execute('INSERT INTO players (name) VALUES (?)', ('TestPlayer',))
+            db.commit()
+
+            player = db.execute('SELECT * FROM players WHERE name = ?', ('TestPlayer',)).fetchone()
+            self.assertIsNotNone(player)
+            self.assertEqual(player['name'], 'TestPlayer')
+
+    def test_create_game(self):
+        """Test game creation in the database."""
+        with app.app_context():
+            db = get_db()
+            db.execute('INSERT INTO players (name) VALUES (?)', ('TestPlayer',))
+            db.commit()
+
+            player_id = db.execute('SELECT id FROM players WHERE name = ?', ('TestPlayer',)).fetchone()['id']
+            db.execute('INSERT INTO games (player_id, score) VALUES (?, 0)', (player_id,))
+            db.commit()
+
+            game = db.execute('SELECT * FROM games WHERE player_id = ?', (player_id,)).fetchone()
+            self.assertIsNotNone(game)
+            self.assertEqual(game['player_id'], player_id)
+            self.assertEqual(game['score'], 0)
+
+    def test_update_score(self):
+        """Test updating the score in the database."""
+        with app.app_context():
+            db = get_db()
+            db.execute('INSERT INTO players (name) VALUES (?)', ('TestPlayer',))
+            db.commit()
+
+            player_id = db.execute('SELECT id FROM players WHERE name = ?', ('TestPlayer',)).fetchone()['id']
+            db.execute('INSERT INTO games (player_id, score) VALUES (?, 0)', (player_id,))
+            db.commit()
+
+            game_id = db.execute('SELECT id FROM games WHERE player_id = ?', (player_id,)).fetchone()['id']
+            db.execute('UPDATE games SET score = ? WHERE id = ?', (10, game_id))
+            db.commit()
+
+            game = db.execute('SELECT * FROM games WHERE id = ?', (game_id,)).fetchone()
+            self.assertEqual(game['score'], 10)
 
 if __name__ == '__main__':
     unittest.main()
