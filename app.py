@@ -125,10 +125,10 @@ def create_game(player_name):
         player_id = database.execute('SELECT id FROM players WHERE name = ?',
                                      (player_name,)).fetchone()['id']
         cursor = database.execute('INSERT INTO games (player_id, score) VALUES (?, 0)',
-                                   (player_id,))
+                                  (player_id,))
         game_id = cursor.lastrowid
         database.commit()
-        logger.info("Game created successfully for player '%s' with game_id '%s'.", 
+        logger.info("Game created successfully for player '%s' with game_id '%s'.",
                     player_name, game_id)
         return game_id
     except sqlite3.Error as error:
@@ -151,9 +151,10 @@ def record_attempt(game_id, answer_time):
         database = get_db()
         database.execute(
             'INSERT INTO attempts (game_id, answer_time) VALUES (?, ?)',
-                         (game_id, answer_time))
+                        (game_id, answer_time))
         database.commit()
-        logger.info("Attempt recorded for game_id '%s' with answer_time '%s'.", game_id, answer_time)
+        logger.info("Attempt recorded for game_id '%s' with answer_time '%s'.",
+                    game_id, answer_time)
     except sqlite3.Error as error:
         logger.error("Error recording attempt for game_id '%s': %s", game_id, error)
 
