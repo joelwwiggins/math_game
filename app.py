@@ -124,10 +124,12 @@ def create_game(player_name):
         database = get_db()
         player_id = database.execute('SELECT id FROM players WHERE name = ?',
                                      (player_name,)).fetchone()['id']
-        cursor = database.execute('INSERT INTO games (player_id, score) VALUES (?, 0)', (player_id,))
+        cursor = database.execute('INSERT INTO games (player_id, score) VALUES (?, 0)',
+                                   (player_id,))
         game_id = cursor.lastrowid
         database.commit()
-        logger.info("Game created successfully for player '%s' with game_id '%s'.", player_name, game_id)
+        logger.info("Game created successfully for player '%s' with game_id '%s'.", 
+                    player_name, game_id)
         return game_id
     except sqlite3.Error as error:
         logger.error("Error creating game for player '%s': %s", player_name, error)
@@ -147,7 +149,8 @@ def record_attempt(game_id, answer_time):
     """Record an attempt for a given game."""
     try:
         database = get_db()
-        database.execute('INSERT INTO attempts (game_id, answer_time) VALUES (?, ?)',
+        database.execute(
+            'INSERT INTO attempts (game_id, answer_time) VALUES (?, ?)',
                          (game_id, answer_time))
         database.commit()
         logger.info("Attempt recorded for game_id '%s' with answer_time '%s'.", game_id, answer_time)
@@ -158,6 +161,7 @@ def record_attempt(game_id, answer_time):
 def teardown_db(_exception):
     """Teardown the database connection."""
     close_db()
+
 
 if __name__ == '__main__':
     init_db()
