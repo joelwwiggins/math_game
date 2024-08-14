@@ -1,10 +1,3 @@
-"""
-A Flask application for a simple math game with database integration.
-
-This module implements a web-based math game where players can solve
-addition problems, with their scores and attempts recorded in a SQLite database.
-"""
-
 import logging
 import random
 import sqlite3
@@ -14,8 +7,19 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, session, g
 from init_db import init_db as initialize_database
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging to a file
+log_dir = '/mnt/logs'
+os.makedirs(log_dir, exist_ok=True)
+log_file = os.path.join(log_dir, 'app.log')
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.FileHandler(log_file),
+        logging.StreamHandler()  # to also log to console
+    ]
+)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
@@ -37,8 +41,13 @@ def close_db(_error=None):
 
 def init_db():
     """Initialize the database."""
-    with app.app_context():
-        initialize_database(app.config['DATABASE'])
+    db_path = app.config['DATABASE']
+    if not os.path.exists(db_path):
+        with app.app_context():
+            initialize_database(db_path)
+            logger.info("Database created at '%s'.", db_path)
+    else:
+        logger.info("Database already exists at '%s'.", db_path)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -162,7 +171,6 @@ def record_attempt(game_id, answer_time):
 def teardown_db(_exception):
     """Teardown the database connection."""
     close_db()
-
 
 if __name__ == '__main__':
     init_db()
