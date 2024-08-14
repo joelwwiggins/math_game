@@ -1,128 +1,179 @@
-"""Unit tests for the Math Adventure game application."""
+"""A Flask application for a simple math game with database integration.
 
-import os
-import tempfile
+This module implements a web-based math game where players can solve
+addition problems, with their scores and attempts recorded in a SQLite database.
+"""
+
+import logging
+import random
+import sqlite3
 import time
-import unittest
+import os
 
-from app import app, init_db, get_db
+from flask import Flask, render_template, request, redirect, url_for, session, g
+from init_db import init_db as initialize_database
 
+# Configure logging to a file
+LOG_DIR = '/mnt/logs'
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOG_DIR, 'app.log')
 
-class MathGameTestCase(unittest.TestCase):
-    """Test case for the Math Adventure game application."""
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[
+        logging.FileHandler(LOG_FILE),
+        logging.StreamHandler()  # to also log to console
+    ]
+)
+LOGGER = logging.getLogger(__name__)
 
-    def setUp(self):
-        """Set up the test environment before each test."""
-        self.db_fd, self.db_path = tempfile.mkstemp()
-        app.config['DATABASE'] = self.db_path
-        app.config['TESTING'] = True
-        app.config['WTF_CSRF_ENABLED'] = False
-        self.client = app.test_client()
-        with app.app_context():
-            init_db()
+APP = Flask(__name__)
+APP.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')
+APP.config['DATABASE'] = '/mnt/db/math_game.db'
 
-    def tearDown(self):
-        """Clean up the test environment after each test."""
-        os.close(self.db_fd)
-        os.unlink(self.db_path)
+def get_db():
+    """Get or create a database connection."""
+    if 'db' not in g:
+        g.db = sqlite3.connect(APP.config['DATABASE'])
+        g.db.row_factory = sqlite3.Row
+    return g.db
 
-    def test_index_page(self):
-        """Test the index page."""
-        response = self.client.get('/')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Welcome to the Math Adventure!', response.data)
+def close_db(_error=None):
+    """Close the database connection."""
+    database = g.pop('db', None)
+    if database is not None:
+        database.close()
 
-    def test_game_page(self):
-        """Test the game page."""
-        response = self.client.post('/', data={'player_name': 'TestPlayer'},
-                                    follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Hello, TestPlayer!', response.data)
+def init_db():
+    """Initialize the database."""
+    db_path = APP.config['DATABASE']
+    initialize_database(db_path)
+    LOGGER.info("Database initialized at '%s'.", db_path)
 
-    def test_correct_answer(self):
-        """Test submitting a correct answer."""
-        with self.client.session_transaction() as sess:
-            sess['player_name'] = 'TestPlayer'
-            sess['game_id'] = 1
-            sess['score'] = 0
-            sess['start_time'] = time.time()
-            sess['num1'] = 5
-            sess['num2'] = 3
+@APP.route('/', methods=['GET', 'POST'])
+def index():
+    """Handle the index route."""
+    if request.method == 'POST':
+        player_name = request.form['player_name']
+        session['player_name'] = player_name
+        create_player(player_name)
+        return redirect(url_for('game'))
+    return render_template('index.html')
 
-        response = self.client.post('/game', data={'answer': '8'},
-                                    follow_redirects=True)
-        self.assertIn(b'Score: 1', response.data)
+@APP.route('/game', methods=['GET', 'POST'])
+def game():
+    """Handle the game route."""
+    if 'player_name' not in session:
+        return redirect(url_for('index'))
 
-    def test_incorrect_answer(self):
-        """Test submitting an incorrect answer."""
-        with self.client.session_transaction() as sess:
-            sess['player_name'] = 'TestPlayer'
-            sess['game_id'] = 1
-            sess['score'] = 0
-            sess['start_time'] = time.time()
-            sess['num1'] = 5
-            sess['num2'] = 3
+    if 'game_id' not in session:
+        session['game_id'] = create_game(session['player_name'])
+        session['score'] = 0
 
-        response = self.client.post('/game', data={'answer': '7'},
-                                    follow_redirects=True)
-        self.assertIn(b'Score: 0', response.data)
+    if 'start_time' not in session:
+        session['start_time'] = time.time()
 
-    def test_results_page(self):
-        """Test the results page."""
-        with self.client.session_transaction() as sess:
-            sess['player_name'] = 'TestPlayer'
-            sess['game_id'] = 1
-            sess['score'] = 5
+    if request.method == 'POST':
+        user_answer = int(request.form['answer'])
+        correct_answer = session['num1'] + session['num2']
+        answer_time = time.time() - session['start_time']
 
-        response = self.client.get('/results')
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Adventure Results for TestPlayer', response.data)
-        self.assertIn(b'Final Score: 5', response.data)
+        if user_answer == correct_answer:
+            session['score'] += 1
+            update_score(session['game_id'], session['score'])
 
-    def test_create_player(self):
-        """Test player creation in the database."""
-        with app.app_context():
-            db = get_db()
-            db.execute('INSERT INTO players (name) VALUES (?)', ('TestPlayer',))
-            db.commit()
+        record_attempt(session['game_id'], answer_time)
+        session['start_time'] = time.time()
 
-            player = db.execute('SELECT * FROM players WHERE name = ?', ('TestPlayer',)).fetchone()
-            self.assertIsNotNone(player)
-            self.assertEqual(player['name'], 'TestPlayer')
+        return redirect(url_for('game'))
 
-    def test_create_game(self):
-        """Test game creation in the database."""
-        with app.app_context():
-            db = get_db()
-            db.execute('INSERT INTO players (name) VALUES (?)', ('TestPlayer',))
-            db.commit()
+    session['num1'] = random.randint(0, 10)
+    session['num2'] = random.randint(0, 10)
 
-            player_id = db.execute('SELECT id FROM players WHERE name = ?', ('TestPlayer',)).fetchone()['id']
-            db.execute('INSERT INTO games (player_id, score) VALUES (?, 0)', (player_id,))
-            db.commit()
+    return render_template('game.html', num1=session['num1'], num2=session['num2'],
+                           score=session['score'], player_name=session['player_name'])
 
-            game = db.execute('SELECT * FROM games WHERE player_id = ?', (player_id,)).fetchone()
-            self.assertIsNotNone(game)
-            self.assertEqual(game['player_id'], player_id)
-            self.assertEqual(game['score'], 0)
+@APP.route('/results')
+def results():
+    """Handle the results route."""
+    if 'player_name' not in session or 'game_id' not in session:
+        return redirect(url_for('index'))
 
-    def test_update_score(self):
-        """Test updating the score in the database."""
-        with app.app_context():
-            db = get_db()
-            db.execute('INSERT INTO players (name) VALUES (?)', ('TestPlayer',))
-            db.commit()
+    game_id = session['game_id']
+    player_name = session['player_name']
+    score = session['score']
+    attempts = get_attempts(game_id)
 
-            player_id = db.execute('SELECT id FROM players WHERE name = ?', ('TestPlayer',)).fetchone()['id']
-            db.execute('INSERT INTO games (player_id, score) VALUES (?, 0)', (player_id,))
-            db.commit()
+    # Clear the session data after getting results
+    session.pop('game_id', None)
+    session.pop('score', None)
 
-            game_id = db.execute('SELECT id FROM games WHERE player_id = ?', (player_id,)).fetchone()['id']
-            db.execute('UPDATE games SET score = ? WHERE id = ?', (10, game_id))
-            db.commit()
+    return render_template('results.html', attempts=attempts,
+                           player_name=player_name, score=score)
 
-            game = db.execute('SELECT * FROM games WHERE id = ?', (game_id,)).fetchone()
-            self.assertEqual(game['score'], 10)
+def get_attempts(game_id):
+    """Get all attempts for a given game."""
+    database = get_db()
+    attempts = database.execute('SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id',
+                                (game_id,)).fetchall()
+    return [attempt['answer_time'] for attempt in attempts]
+
+def create_player(name):
+    """Create a new player in the database."""
+    try:
+        database = get_db()
+        database.execute('INSERT OR IGNORE INTO players (name) VALUES (?)', (name,))
+        database.commit()
+        LOGGER.info("Player '%s' created successfully.", name)
+    except sqlite3.Error as error:
+        LOGGER.error("Error creating player '%s': %s", name, error)
+
+def create_game(player_name):
+    """Create a new game in the database."""
+    try:
+        database = get_db()
+        player_id = database.execute('SELECT id FROM players WHERE name = ?',
+                                     (player_name,)).fetchone()['id']
+        cursor = database.execute('INSERT INTO games (player_id, score) VALUES (?, 0)',
+                                  (player_id,))
+        game_id = cursor.lastrowid
+        database.commit()
+        LOGGER.info("Game created successfully for player '%s' with game_id '%s'.",
+                    player_name, game_id)
+        return game_id
+    except sqlite3.Error as error:
+        LOGGER.error("Error creating game for player '%s': %s", player_name, error)
+        return None
+
+def update_score(game_id, score):
+    """Update the score for a given game."""
+    try:
+        database = get_db()
+        database.execute('UPDATE games SET score = ? WHERE id = ?', (score, game_id))
+        database.commit()
+        LOGGER.info("Score updated to '%s' for game_id '%s'.", score, game_id)
+    except sqlite3.Error as error:
+        LOGGER.error("Error updating score for game_id '%s': %s", game_id, error)
+
+def record_attempt(game_id, answer_time):
+    """Record an attempt for a given game."""
+    try:
+        database = get_db()
+        database.execute(
+            'INSERT INTO attempts (game_id, answer_time) VALUES (?, ?)',
+                        (game_id, answer_time))
+        database.commit()
+        LOGGER.info("Attempt recorded for game_id '%s' with answer_time '%s'.",
+                    game_id, answer_time)
+    except sqlite3.Error as error:
+        LOGGER.error("Error recording attempt for game_id '%s': %s", game_id, error)
+
+@APP.teardown_appcontext
+def teardown_db(_exception):
+    """Teardown the database connection."""
+    close_db()
 
 if __name__ == '__main__':
-    unittest.main()
+    init_db()
+    APP.run(host='127.0.0.1', port=80)
