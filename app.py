@@ -10,9 +10,9 @@ from flask import Flask, render_template, request, redirect, url_for, session, g
 from init_db import init_db as initialize_database
 
 # Configure logging to a file
-log_dir = '/mnt/logs'
-os.makedirs(log_dir, exist_ok=True)
-log_file = os.path.join(log_dir, 'app.log')
+LOG_DIR = '/mnt/logs'
+os.makedirs(LOG_DIR, exist_ok=True)
+log_file = os.path.join(LOG_DIR, 'app.log')
 
 logging.basicConfig(
     level=logging.INFO,
