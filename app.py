@@ -1,3 +1,10 @@
+"""
+A Flask application for a simple math game with database integration.
+
+This module implements a web-based math game where players can solve
+addition problems, with their scores and attempts recorded in a SQLite database.
+"""
+
 import logging
 import random
 import sqlite3
@@ -107,9 +114,9 @@ def create_player(name):
         database = get_db()
         database.execute('INSERT OR IGNORE INTO players (name) VALUES (?)', (name,))
         database.commit()
-        logger.info(f"Player '{name}' created successfully.")
-    except sqlite3.Error as e:
-        logger.error(f"Error creating player '{name}': {e}")
+        logger.info("Player '%s' created successfully.", name)
+    except sqlite3.Error as error:
+        logger.error("Error creating player '%s': %s", name, error)
 
 def create_game(player_name):
     """Create a new game in the database."""
@@ -120,10 +127,10 @@ def create_game(player_name):
         cursor = database.execute('INSERT INTO games (player_id, score) VALUES (?, 0)', (player_id,))
         game_id = cursor.lastrowid
         database.commit()
-        logger.info(f"Game created successfully for player '{player_name}' with game_id '{game_id}'.")
+        logger.info("Game created successfully for player '%s' with game_id '%s'.", player_name, game_id)
         return game_id
-    except sqlite3.Error as e:
-        logger.error(f"Error creating game for player '{player_name}': {e}")
+    except sqlite3.Error as error:
+        logger.error("Error creating game for player '%s': %s", player_name, error)
         return None
 
 def update_score(game_id, score):
@@ -132,9 +139,9 @@ def update_score(game_id, score):
         database = get_db()
         database.execute('UPDATE games SET score = ? WHERE id = ?', (score, game_id))
         database.commit()
-        logger.info(f"Score updated to '{score}' for game_id '{game_id}'.")
-    except sqlite3.Error as e:
-        logger.error(f"Error updating score for game_id '{game_id}': {e}")
+        logger.info("Score updated to '%s' for game_id '%s'.", score, game_id)
+    except sqlite3.Error as error:
+        logger.error("Error updating score for game_id '%s': %s", game_id, error)
 
 def record_attempt(game_id, answer_time):
     """Record an attempt for a given game."""
@@ -143,9 +150,9 @@ def record_attempt(game_id, answer_time):
         database.execute('INSERT INTO attempts (game_id, answer_time) VALUES (?, ?)',
                          (game_id, answer_time))
         database.commit()
-        logger.info(f"Attempt recorded for game_id '{game_id}' with answer_time '{answer_time}'.")
-    except sqlite3.Error as e:
-        logger.error(f"Error recording attempt for game_id '{game_id}': {e}")
+        logger.info("Attempt recorded for game_id '%s' with answer_time '%s'.", game_id, answer_time)
+    except sqlite3.Error as error:
+        logger.error("Error recording attempt for game_id '%s': %s", game_id, error)
 
 @app.teardown_appcontext
 def teardown_db(_exception):

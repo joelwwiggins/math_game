@@ -1,4 +1,4 @@
-""" This script initializes the database for the math game. """
+"""This script initializes the database for the math game."""
 
 import sqlite3
 import logging
@@ -11,11 +11,11 @@ def init_db(db_path='/mnt/db/math_game.db'):
     """Initialize the database."""
     try:
         conn = sqlite3.connect(db_path)
-        logger.info(f"Connected to the database at '{db_path}' successfully.")
-        car = conn.cursor()
+        logger.info("Connected to the database at '%s' successfully.", db_path)
+        cursor = conn.cursor()
 
         # Create tables
-        car.execute('''
+        cursor.execute('''
             CREATE TABLE IF NOT EXISTS players (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE
@@ -23,7 +23,7 @@ def init_db(db_path='/mnt/db/math_game.db'):
         ''')
         logger.info("Table 'players' created successfully.")
 
-        car.execute('''
+        cursor.execute('''
             CREATE TABLE IF NOT EXISTS games (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 player_id INTEGER,
@@ -33,7 +33,7 @@ def init_db(db_path='/mnt/db/math_game.db'):
         ''')
         logger.info("Table 'games' created successfully.")
 
-        car.execute('''
+        cursor.execute('''
             CREATE TABLE IF NOT EXISTS attempts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 game_id INTEGER,
@@ -46,8 +46,8 @@ def init_db(db_path='/mnt/db/math_game.db'):
         conn.commit()
         conn.close()
         logger.info("Database initialized and connection closed successfully.")
-    except sqlite3.Error as e:
-        logger.error(f"Error initializing database at '{db_path}': {e}")
+    except sqlite3.Error as error:
+        logger.error("Error initializing database at '%s': %s", db_path, error)
 
 if __name__ == '__main__':
     init_db()
