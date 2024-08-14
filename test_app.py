@@ -5,7 +5,7 @@ import tempfile
 import time
 import unittest
 
-from app import app, init_db
+from app import app, init_db, get_db
 
 
 class MathGameTestCase(unittest.TestCase):
