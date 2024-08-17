@@ -1,3 +1,4 @@
+"""this is to initialize the database and create the tables for the math game"""
 import sqlite3
 import logging
 import os
