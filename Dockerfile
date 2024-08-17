@@ -7,9 +7,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+RUN mkdir -p /mnt/db
 
 EXPOSE 8080
 
-
-
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "app:app"]
