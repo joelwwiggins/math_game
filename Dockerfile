@@ -8,11 +8,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 
-EXPOSE 80
+EXPOSE 8080
 
-# Define environment variable
-ENV FLASK_RUN_HOST=0.0.0.0
-ENV FLASK_RUN_PORT=80
 
 
 CMD ["python", "app.py"]
