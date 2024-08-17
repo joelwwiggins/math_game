@@ -46,8 +46,8 @@ def close_db(_error=None):
 def init_db():
     """Initialize the database."""
     db_path = app.config['DATABASE']
-    initialize_database(db_path)
-    logger.info("Database initialized at '%s'.", db_path)
+    initialize_database()  # Removed the argument
+    logger.info("Database initialized at '%s'", db_path)
 
 
 @app.route('/', methods=['GET', 'POST'])
