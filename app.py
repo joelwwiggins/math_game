@@ -31,9 +31,11 @@ app.config['DATABASE'] = '/mnt/db/math_game.db'
 def get_db():
     """Get or create a database connection."""
     if 'db' not in g:
+        # pylint: disable=assigning-non-slot
         g.db = sqlite3.connect(app.config['DATABASE'])
         g.db.row_factory = sqlite3.Row
     return g.db
+
 
 def close_db(_error=None):
     """Close the database connection."""
@@ -46,6 +48,7 @@ def init_db():
     db_path = app.config['DATABASE']
     initialize_database(db_path)
     logger.info("Database initialized at '%s'.", db_path)
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
