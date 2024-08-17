@@ -11,4 +11,5 @@ RUN mkdir -p /mnt/db
 
 EXPOSE 8080
 
-CMD ["gunicorn", "--config", "gunicorn.conf.py", "app:app"]
+
+CMD ["python", "init_db.py", "&&", "gunicorn", "app:app"]
