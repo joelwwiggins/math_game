@@ -10,17 +10,24 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def get_db_connection():
-    """Get a connection to the SQLite database."""
-    try:
-        db_path = '/mnt/db/math_game.db' 
-        conn = sqlite3.connect(db_path)
-        conn.execute("PRAGMA journal_mode=WAL")  # Enable Write-Ahead Logging
-        logger.info("Connected to the SQLite database successfully.")
-        return conn
-    except sqlite3.Error as error:
-        logger.error("Error connecting to SQLite database: %s", error)
-        raise
+def get_db_connection(retries=5, delay=1):
+    """Get a connection to the SQLite database with retry logic."""
+    db_path = '/mnt/db/math_game.db'
+    for attempt in range(retries):
+        try:
+            conn = sqlite3.connect(db_path)
+            conn.execute("PRAGMA journal_mode=WAL")  # Enable Write-Ahead Logging
+            logger.info("Connected to the SQLite database successfully.")
+            return conn
+        except sqlite3.OperationalError as error:
+            if "database is locked" in str(error):
+                logger.warning("Database is locked, retrying in %s seconds...", delay)
+                time.sleep(delay)
+            else:
+                logger.error("Error connecting to SQLite database: %s", error)
+                raise
+    logger.error("Failed to connect to SQLite database after %s retries.", retries)
+    raise sqlite3.OperationalError("database is locked")
 
 
 def init_db():
