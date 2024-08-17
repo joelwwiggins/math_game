@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def get_db_connection():
     """Get a connection to the SQLite database."""
     try:
-        db_path = os.environ.get("DB_PATH", "math_game.db")
+        db_path = '/mnt/db/math_game.db' 
         conn = sqlite3.connect(db_path)
         conn.execute("PRAGMA journal_mode=WAL")  # Enable Write-Ahead Logging
         logger.info("Connected to the SQLite database successfully.")
