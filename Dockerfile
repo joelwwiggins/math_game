@@ -12,4 +12,4 @@ RUN mkdir -p /mnt/db
 EXPOSE 8080
 
 
-CMD ["python", "init_db.py", "&&", "gunicorn", "app:app"]
+CMD ["sh", "-c", "python init_db.py && gunicorn app:app"]
