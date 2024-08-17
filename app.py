@@ -1,4 +1,4 @@
-"testing file"
+"main application file"
 
 import logging
 import random
