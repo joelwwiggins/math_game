@@ -18,7 +18,7 @@ def get_db_connection():
         logger.info("Connected to the SQLite database successfully.")
         return conn
     except sqlite3.Error as error:
-        logger.error(f"Error connecting to SQLite database: {error}")
+        logger.error("Error connecting to SQLite database: %s", error)
         raise
 
 
@@ -71,10 +71,10 @@ def init_db():
         logger.info("Database connection closed successfully.")
         return True
     except sqlite3.Error as error:
-        logger.error(f"SQLite error occurred: {error}")
+        logger.error("SQLite error occurred: %s", error)
         return False
     except Exception as error:
-        logger.error(f"An unexpected error occurred: {error}")
+        logger.error("An unexpected error occurred: %s", error)
         return False
 
 
@@ -85,4 +85,3 @@ if __name__ == "__main__":
     else:
         logger.error("Failed to initialize database. Check the logs for details.")
     logger.info("Database initialization script completed")
-    
