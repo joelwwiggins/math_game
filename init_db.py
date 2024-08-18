@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 def get_db_connection(retries=5, delay=1):
     """Get a connection to the SQLite database with retry logic."""
     db_path = '/mnt/db/math_game.db'
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)  # Ensure the directory exists
     for attempt in range(retries):
         try:
             conn = sqlite3.connect(db_path)

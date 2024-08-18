@@ -1,8 +1,4 @@
-"""A Flask application for a simple math game with database integration.
-
-This module implements a web-based math game where players can solve
-addition problems, with their scores and attempts recorded in a SQLite database.
-"""
+"main application file"
 
 import logging
 import random
@@ -16,28 +12,30 @@ from init_db import init_db as initialize_database
 # Configure logging to a file
 LOG_DIR = '/mnt/logs'
 os.makedirs(LOG_DIR, exist_ok=True)
-LOG_FILE = os.path.join(LOG_DIR, 'app.log')
+log_file = os.path.join(LOG_DIR, 'app.log')
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
     handlers=[
-        logging.FileHandler(LOG_FILE),
+        logging.FileHandler(log_file),
         logging.StreamHandler()  # to also log to console
     ]
 )
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
-APP = Flask(__name__)
-APP.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')
-APP.config['DATABASE'] = '/mnt/db/math_game.db'
+app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY', 'your_secret_key')
+app.config['DATABASE'] = '/mnt/db/math_game.db'
 
 def get_db():
     """Get or create a database connection."""
     if 'db' not in g:
-        g.db = sqlite3.connect(APP.config['DATABASE'])
+        # pylint: disable=assigning-non-slot
+        g.db = sqlite3.connect(app.config['DATABASE'])
         g.db.row_factory = sqlite3.Row
     return g.db
+
 
 def close_db(_error=None):
     """Close the database connection."""
@@ -47,11 +45,12 @@ def close_db(_error=None):
 
 def init_db():
     """Initialize the database."""
-    db_path = APP.config['DATABASE']
-    initialize_database(db_path)
-    LOGGER.info("Database initialized at '%s'.", db_path)
+    db_path = app.config['DATABASE']
+    initialize_database()  # Removed the argument
+    logger.info("Database initialized at '%s'", db_path)
 
-@APP.route('/', methods=['GET', 'POST'])
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
     """Handle the index route."""
     if request.method == 'POST':
@@ -61,7 +60,7 @@ def index():
         return redirect(url_for('game'))
     return render_template('index.html')
 
-@APP.route('/game', methods=['GET', 'POST'])
+@app.route('/game', methods=['GET', 'POST'])
 def game():
     """Handle the game route."""
     if 'player_name' not in session:
@@ -94,7 +93,7 @@ def game():
     return render_template('game.html', num1=session['num1'], num2=session['num2'],
                            score=session['score'], player_name=session['player_name'])
 
-@APP.route('/results')
+@app.route('/results')
 def results():
     """Handle the results route."""
     if 'player_name' not in session or 'game_id' not in session:
@@ -125,9 +124,9 @@ def create_player(name):
         database = get_db()
         database.execute('INSERT OR IGNORE INTO players (name) VALUES (?)', (name,))
         database.commit()
-        LOGGER.info("Player '%s' created successfully.", name)
+        logger.info("Player '%s' created successfully.", name)
     except sqlite3.Error as error:
-        LOGGER.error("Error creating player '%s': %s", name, error)
+        logger.error("Error creating player '%s': %s", name, error)
 
 def create_game(player_name):
     """Create a new game in the database."""
@@ -139,11 +138,11 @@ def create_game(player_name):
                                   (player_id,))
         game_id = cursor.lastrowid
         database.commit()
-        LOGGER.info("Game created successfully for player '%s' with game_id '%s'.",
+        logger.info("Game created successfully for player '%s' with game_id '%s'.",
                     player_name, game_id)
         return game_id
     except sqlite3.Error as error:
-        LOGGER.error("Error creating game for player '%s': %s", player_name, error)
+        logger.error("Error creating game for player '%s': %s", player_name, error)
         return None
 
 def update_score(game_id, score):
@@ -152,9 +151,9 @@ def update_score(game_id, score):
         database = get_db()
         database.execute('UPDATE games SET score = ? WHERE id = ?', (score, game_id))
         database.commit()
-        LOGGER.info("Score updated to '%s' for game_id '%s'.", score, game_id)
+        logger.info("Score updated to '%s' for game_id '%s'.", score, game_id)
     except sqlite3.Error as error:
-        LOGGER.error("Error updating score for game_id '%s': %s", game_id, error)
+        logger.error("Error updating score for game_id '%s': %s", game_id, error)
 
 def record_attempt(game_id, answer_time):
     """Record an attempt for a given game."""
@@ -164,16 +163,15 @@ def record_attempt(game_id, answer_time):
             'INSERT INTO attempts (game_id, answer_time) VALUES (?, ?)',
                         (game_id, answer_time))
         database.commit()
-        LOGGER.info("Attempt recorded for game_id '%s' with answer_time '%s'.",
+        logger.info("Attempt recorded for game_id '%s' with answer_time '%s'.",
                     game_id, answer_time)
     except sqlite3.Error as error:
-        LOGGER.error("Error recording attempt for game_id '%s': %s", game_id, error)
+        logger.error("Error recording attempt for game_id '%s': %s", game_id, error)
 
-@APP.teardown_appcontext
+@app.teardown_appcontext
 def teardown_db(_exception):
     """Teardown the database connection."""
     close_db()
 
 if __name__ == '__main__':
     init_db()
-    APP.run(host='127.0.0.1', port=80)

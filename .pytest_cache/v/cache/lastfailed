@@ -1,5 +1,10 @@
 {
   "test_app.py::MathGameTestCase::test_correct_answer": true,
   "test_app.py::MathGameTestCase::test_game_page": true,
-  "test_app.py::MathGameTestCase::test_index_page": true
+  "test_app.py::MathGameTestCase::test_index_page": true,
+  "test_app.py::test_init_db": true,
+  "test_app.py::test_game": true,
+  "test_app.py::test_results": true,
+  "test_app.py::test_index": true,
+  "test_app.py::test_close_db": true
 }

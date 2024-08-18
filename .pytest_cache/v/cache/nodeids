@@ -1,5 +1,18 @@
 [
   "test_app.py::MathGameTestCase::test_correct_answer",
   "test_app.py::MathGameTestCase::test_game_page",
-  "test_app.py::MathGameTestCase::test_index_page"
+  "test_app.py::MathGameTestCase::test_index_page",
+  "test_app.py::test_close_db",
+  "test_app.py::test_game",
+  "test_app.py::test_get_db",
+  "test_app.py::test_get_db_connection",
+  "test_app.py::test_get_db_connection_failure",
+  "test_app.py::test_get_db_connection_retry",
+  "test_app.py::test_get_db_connection_success",
+  "test_app.py::test_index",
+  "test_app.py::test_init_db",
+  "test_app.py::test_init_db_sqlite_error",
+  "test_app.py::test_init_db_success",
+  "test_app.py::test_init_db_unexpected_error",
+  "test_app.py::test_results"
 ]
