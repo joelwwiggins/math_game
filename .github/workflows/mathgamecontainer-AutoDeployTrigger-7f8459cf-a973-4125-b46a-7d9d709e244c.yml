@@ -41,8 +41,6 @@ jobs:
           containerAppName: mathgamecontainer
           resourceGroup: mathgameresource
           imageToBuild: mathgameregistry.azurecr.io/mathgamecontainer:${{ github.sha }}
-          _buildArgumentsKey_: |
-            _buildArgumentsValues_
       - name: Update Container App with Volume
         run: |
           az containerapp update -n mathgamecontainer -g mathgameresource --set \
