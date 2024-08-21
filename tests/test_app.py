@@ -16,9 +16,9 @@ class MathGameTestCase(unittest.TestCase):
         with app.app_context():
             db = get_db()
             with db.cursor() as cursor:
-                cursor.execute("DELETE FROM players")
-                cursor.execute("DELETE FROM games")
                 cursor.execute("DELETE FROM attempts")
+                cursor.execute("DELETE FROM games")
+                cursor.execute("DELETE FROM players")
             db.commit()
             close_db()
 
