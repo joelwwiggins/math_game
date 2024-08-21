@@ -15,9 +15,10 @@ class MathGameTestCase(unittest.TestCase):
         """Tear down test environment."""
         with app.app_context():
             db = get_db()
-            db.execute("DELETE FROM players")
-            db.execute("DELETE FROM games")
-            db.execute("DELETE FROM attempts")
+            with db.cursor() as cursor:
+                cursor.execute("DELETE FROM players")
+                cursor.execute("DELETE FROM games")
+                cursor.execute("DELETE FROM attempts")
             db.commit()
             close_db()
 
