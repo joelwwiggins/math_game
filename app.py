@@ -7,7 +7,7 @@ import os
 import psycopg2
 
 from psycopg2.extras import DictCursor
-from flask import Flask, render_template, request, redirect, url_for, session, g
+from flask import Flask, render_template, request, redirect, url_for, session
 from init_db import init_db as initialize_database
 
 # Configure logging to a file
@@ -31,14 +31,14 @@ app.config['DATABASE'] = {
     'dbname': os.getenv('POSTGRES_DB', 'math_game'),
     'user': os.getenv('POSTGRES_USER', 'user'),
     'password': os.getenv('POSTGRES_PASSWORD', 'password'),
-    'host': os.getenv('POSTGRES_HOST', 'db'),  # 'db' is the service name of the PostgreSQL container
+    'host': os.getenv('POSTGRES_HOST', 'db'),
     'port': os.getenv('POSTGRES_PORT', '5432')
 }
 
 def get_db():
     """Get or create a database connection."""
-    if 'db' not in g:
-        g.db = psycopg2.connect(
+    if 'database_connection' not in app.extensions:
+        app.extensions['database_connection'] = psycopg2.connect(
             dbname=os.getenv('POSTGRES_DB', 'math_game'),
             user=os.getenv('POSTGRES_USER', 'user'),
             password=os.getenv('POSTGRES_PASSWORD', 'password'),
@@ -46,13 +46,13 @@ def get_db():
             port=os.getenv('POSTGRES_PORT', '5432'),
             cursor_factory=DictCursor
         )
-    return g.db
+    return app.extensions['database_connection']
 
 def close_db(_error=None):
     """Close the database connection."""
-    db = g.pop('db', None)
-    if db is not None:
-        db.close()
+    database_connection = app.extensions.pop('database_connection', None)
+    if database_connection is not None:
+        database_connection.close()
 
 def init_db():
     """Initialize the database."""
@@ -124,7 +124,8 @@ def get_attempts(game_id):
     """Get all attempts for a given game."""
     database = get_db()
     with database.cursor() as cursor:
-        cursor.execute('SELECT answer_time FROM attempts WHERE game_id = %s ORDER BY id', (game_id,))
+        cursor.execute('SELECT answer_time FROM attempts WHERE game_id = %s ORDER BY id',
+                        (game_id,))
         attempts = cursor.fetchall()
     return [attempt['answer_time'] for attempt in attempts]
 
@@ -133,7 +134,8 @@ def create_player(name):
     try:
         database = get_db()
         with database.cursor() as cursor:
-            cursor.execute('INSERT INTO players (name) VALUES (%s) ON CONFLICT (name) DO NOTHING', (name,))
+            cursor.execute('INSERT INTO players (name) VALUES (%s) ON CONFLICT (name) DO NOTHING',
+                            (name,))
         database.commit()
         logger.info("Player '%s' created successfully.", name)
     except psycopg2.Error as error:
@@ -146,10 +148,12 @@ def create_game(player_name):
         with database.cursor() as cursor:
             cursor.execute('SELECT id FROM players WHERE name = %s', (player_name,))
             player_id = cursor.fetchone()['id']
-            cursor.execute('INSERT INTO games (player_id, score) VALUES (%s, 0) RETURNING id', (player_id,))
+            cursor.execute('INSERT INTO games (player_id, score) VALUES (%s, 0) RETURNING id',
+                            (player_id,))
             game_id = cursor.fetchone()['id']
         database.commit()
-        logger.info("Game created successfully for player '%s' with game_id '%s'.", player_name, game_id)
+        logger.info("Game created successfully for player '%s' with game_id '%s'.",
+                     player_name, game_id)
         return game_id
     except psycopg2.Error as error:
         logger.error("Error creating game for player '%s': %s", player_name, error)
@@ -171,9 +175,11 @@ def record_attempt(game_id, answer_time):
     try:
         database = get_db()
         with database.cursor() as cursor:
-            cursor.execute('INSERT INTO attempts (game_id, answer_time) VALUES (%s, %s)', (game_id, answer_time))
+            cursor.execute('INSERT INTO attempts (game_id, answer_time) VALUES (%s, %s)',
+                            (game_id, answer_time))
         database.commit()
-        logger.info("Attempt recorded for game_id '%s' with answer_time '%s'.", game_id, answer_time)
+        logger.info("Attempt recorded for game_id '%s' with answer_time '%s'.", game_id,
+                     answer_time)
     except psycopg2.Error as error:
         logger.error("Error recording attempt for game_id '%s': %s", game_id, error)
 
