@@ -40,6 +40,12 @@ jobs:
           docker build -t ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamecontainer:${{ github.sha }} .
           docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamecontainer:${{ github.sha }}
 
+      - name: Build and push db container image to registry
+        run: |
+          docker pull postgres:13
+          docker tag postgres:13 ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamedb:${{ github.sha }}
+          docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamedb:${{ github.sha }}
+
       - name: Deploy Web App Container to Azure
         uses: azure/container-apps-deploy-action@v2
         with:
@@ -65,7 +71,7 @@ jobs:
           registryPassword: ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }}
           containerAppName: mathgame-db
           resourceGroup: mathgameresource
-          imageToBuild: ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamedb:${{ github.sha }}
+          imageToDeploy: ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamedb:${{ github.sha }}
 
       - name: Update Web App Container with Volume
         run: |
