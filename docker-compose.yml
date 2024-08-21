@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   web:
     build: .
@@ -17,6 +16,7 @@ services:
         condition: service_healthy
     volumes:
       - ./logs:/mnt/logs
+    command: ["sh", "-c", "python -m unittest discover -s tests"]
 
   db:
     image: postgres:13
