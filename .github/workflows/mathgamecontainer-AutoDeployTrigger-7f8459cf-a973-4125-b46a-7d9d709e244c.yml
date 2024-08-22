@@ -61,7 +61,7 @@ jobs:
             POSTGRES_PASSWORD=password
             POSTGRES_HOST=mathgame-db
             POSTGRES_PORT=5432
-            SECRET_KEY=your_secret_key
+            SECRET_KEY=${{ secrets.SECRET_KEY }}
 
       - name: Deploy DB Container to Azure
         uses: azure/container-apps-deploy-action@v2
