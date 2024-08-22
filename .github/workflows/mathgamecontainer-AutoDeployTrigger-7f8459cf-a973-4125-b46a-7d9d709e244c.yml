@@ -57,8 +57,8 @@ jobs:
           imageToDeploy: ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamecontainer:${{ github.sha }}
           environmentVariables: |
             POSTGRES_DB=math_game
-            POSTGRES_USER=user
-            POSTGRES_PASSWORD=password
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets. POSTGRES_PASSWORD }}
             POSTGRES_HOST=mathgame-db
             POSTGRES_PORT=5432
             SECRET_KEY=${{ secrets.SECRET_KEY }}
