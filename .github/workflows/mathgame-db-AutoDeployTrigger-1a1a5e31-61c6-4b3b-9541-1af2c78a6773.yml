@@ -1,0 +1,47 @@
+name: Trigger auto deployment for mathgame-db
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ main ]
+    paths:
+    - '**'
+    - '.github/workflows/mathgame-db-AutoDeployTrigger-1a1a5e31-61c6-4b3b-9541-1af2c78a6773.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+      contents: read #Required when GH token is used to authenticate with private repo
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.MATHGAMEDB_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.MATHGAMEDB_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.MATHGAMEDB_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: mathgameregistry.azurecr.io
+          registryUsername: ${{ secrets.MATHGAMEDB_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.MATHGAMEDB_REGISTRY_PASSWORD }}
+          containerAppName: mathgame-db
+          resourceGroup: mathgameresource
+          imageToBuild: mathgameregistry.azurecr.io/mathgame-db:${{ github.sha }}
+          _buildArgumentsKey_: |
+            _buildArgumentsValues_
+
+
