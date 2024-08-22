@@ -82,3 +82,4 @@ jobs:
         run: |
           az containerapp update -n mathgame-web -g mathgameresource --set \
           configuration.volumeMounts='[{"mountPath":"/mnt/logs","volumeName":"mathgamevolumemount"}]'
+          
