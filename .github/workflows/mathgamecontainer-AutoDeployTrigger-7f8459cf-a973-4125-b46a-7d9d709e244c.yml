@@ -19,17 +19,17 @@ jobs:
 
     steps:
       - name: Checkout to the branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - name: Azure Login
-        uses: azure/login@v3
+        uses: azure/login@v2
         with:
           client-id: ${{ secrets.MATHGAMECONTAINER_AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.MATHGAMECONTAINER_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.MATHGAMECONTAINER_AZURE_SUBSCRIPTION_ID }}
 
       - name: Log in to Azure Container Registry
-        uses: azure/docker-login@v3
+        uses: azure/docker-login@v1
         with:
           login-server: ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}
           username: ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }}
@@ -76,10 +76,5 @@ jobs:
       - name: Set Volume Mount for Web App
         run: |
           az containerapp update -n mathgame-web -g mathgameresource --set \
+          configuration.volumes='[{"name":"mathgamevolumemount","storageType":"AzureFile","azureFile":{"shareName":"${{ secrets.FILE_SHARE_NAME }}","storageAccountName":"${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}","storageAccountKey":"${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"}}]' \
           configuration.volumeMounts='[{"mountPath":"/mnt/logs","volumeName":"mathgamevolumemount"}]'
-
-      - name: Post-Deployment Check
-        run: |
-          echo "Deployment completed successfully. Checking for issues..."
-          az containerapp show -n mathgame-web -g mathgameresource
-          az containerapp show -n mathgame-db -g mathgameresource
