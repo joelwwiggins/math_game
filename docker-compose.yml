@@ -6,8 +6,8 @@ services:
       - "8080:8080"
     environment:
       - POSTGRES_DB=math_game
-      - POSTGRES_USER=${{ POSTGRES_USER }}
-      - POSTGRES_PASSWORD=${{ POSTGRES_PASSWORD }}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
       - SECRET_KEY=your_secret_key
@@ -22,12 +22,12 @@ services:
     image: postgres:13
     environment:
       - POSTGRES_DB=math_game
-      - POSTGRES_USER=${{ POSTGRES_USER }}
-      - POSTGRES_PASSWORD=${{ POSTGRES_PASSWORD }}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d math_game"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d math_game"]
       interval: 5s
       timeout: 5s
       retries: 5
