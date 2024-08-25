@@ -1,14 +1,10 @@
-name: Trigger auto deployment for mathgamecontainer
+name: Deploy to Azure Container Apps
 
 on:
   push:
     branches: 
       - main
-    paths:
-      - '**'
-      - '.github/workflows/mathgamecontainer-AutoDeployTrigger-7f8459cf-a973-4125-b46a-7d9d709e244c.yml'
-
-  workflow_dispatch:      
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -18,7 +14,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout to the branch
+      - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Azure Login
@@ -35,48 +31,76 @@ jobs:
           username: ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }}
 
-      - name: Build and push web container image to registry
+      - name: Build and push images
         run: |
-          docker build -t ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamecontainer:${{ github.sha }} .
-          docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamecontainer:${{ github.sha }}
+          docker-compose build
+          docker tag ${{ github.workspace }}_web ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }}
+          docker tag postgres:13 ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }}
+          docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }}
+          docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }}
 
-      - name: Build and push db container image to registry
+      - name: Deploy or update DB Container App
         run: |
-          docker pull postgres:13
-          docker tag postgres:13 ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamedb:${{ github.sha }}
-          docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamedb:${{ github.sha }}
+          if az containerapp show --name mathgame-db --resource-group mathgameresource &>/dev/null; then
+            az containerapp update \
+              --name mathgame-db \
+              --resource-group mathgameresource \
+              --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
+              --set-env-vars \
+                POSTGRES_DB=math_game \
+                POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+                POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          else
+            az containerapp create \
+              --name mathgame-db \
+              --resource-group mathgameresource \
+              --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
+              --environment ${{ secrets.CONTAINER_APP_ENVIRONMENT_NAME }} \
+              --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
+              --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
+              --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
+              --env-vars \
+                POSTGRES_DB=math_game \
+                POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+                POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+              --cpu 0.5 --memory 1.0Gi \
+              --min-replicas 1 --max-replicas 1
+          fi
 
-      - name: Deploy DB Container to Azure
-        uses: azure/container-apps-deploy-action@v2
-        with:
-          registryUrl: ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}
-          registryUsername: ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }}
-          containerAppName: mathgame-db
-          resourceGroup: mathgameresource
-          imageToDeploy: ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamedb:${{ github.sha }}
-          #check pwd 
-          environmentVariables: |
-            POSTGRES_DB=math_game
-            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-
-      - name: Deploy Web App Container to Azure
-        uses: azure/container-apps-deploy-action@v2
-        with:
-          registryUrl: ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}
-          registryUsername: ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }}
-          registryPassword: ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }}
-          containerAppName: mathgame-web
-          resourceGroup: mathgameresource
-          imageToDeploy: ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgamecontainer:${{ github.sha }}
-          environmentVariables: |
-            POSTGRES_DB=math_game
-            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            POSTGRES_HOST=mathgame-db
-            POSTGRES_PORT=5432
-            SECRET_KEY=${{ secrets.SECRET_KEY }}
+      - name: Deploy or update Web Container App
+        run: |
+          if az containerapp show --name mathgame-web --resource-group mathgameresource &>/dev/null; then
+            az containerapp update \
+              --name mathgame-web \
+              --resource-group mathgameresource \
+              --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }} \
+              --set-env-vars \
+                POSTGRES_DB=math_game \
+                POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+                POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+                POSTGRES_HOST=mathgame-db \
+                POSTGRES_PORT=5432 \
+                SECRET_KEY=${{ secrets.SECRET_KEY }}
+          else
+            az containerapp create \
+              --name mathgame-web \
+              --resource-group mathgameresource \
+              --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }} \
+              --environment ${{ secrets.CONTAINER_APP_ENVIRONMENT_NAME }} \
+              --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
+              --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
+              --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
+              --env-vars \
+                POSTGRES_DB=math_game \
+                POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
+                POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+                POSTGRES_HOST=mathgame-db \
+                POSTGRES_PORT=5432 \
+                SECRET_KEY=${{ secrets.SECRET_KEY }} \
+              --cpu 0.5 --memory 1.0Gi \
+              --min-replicas 1 --max-replicas 3 \
+              --target-port 8080 \
+              --ingress external
 
       - name: Set Volume Mount for Web App
         run: |
