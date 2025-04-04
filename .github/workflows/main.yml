@@ -28,32 +28,32 @@ jobs:
       run: |
         sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
         sudo chmod +x /usr/local/bin/docker-compose
-        docker-compose --version
+        docker compose --version
 
     - name: Build and push Docker images
       env:
         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      run: docker-compose build
+      run: docker compose build
 
     - name: Run tests
       env:
         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      run: docker-compose run web python -m unittest discover -s tests
+      run: docker compose run web python -m unittest discover -s tests
 
     - name: Lint code
       env:
         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      run: docker-compose run web pylint app.py
+      run: docker compose run web pylint app.py
 
     - name: Run security scan
       env:
         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
-      run: docker-compose run web bandit -r . -ll
+      run: docker compose run web bandit -r . -ll
