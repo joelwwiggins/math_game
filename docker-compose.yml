@@ -2,7 +2,7 @@ version: '3.8'
 services:
   web:
     build: .
-    #image: mydockerhubusername/mathgame-web:latest
+    image: mydockerhubusername/math-game:latest
     ports:
       - "8080:8080"
     environment:
