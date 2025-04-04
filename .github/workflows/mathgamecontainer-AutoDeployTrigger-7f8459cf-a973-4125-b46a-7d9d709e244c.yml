@@ -102,6 +102,7 @@ jobs:
               --min-replicas 1 --max-replicas 3 \
               --target-port 8080 \
               --ingress external
+          fi
 
       - name: Set Volume Mount for Web App
         run: |
