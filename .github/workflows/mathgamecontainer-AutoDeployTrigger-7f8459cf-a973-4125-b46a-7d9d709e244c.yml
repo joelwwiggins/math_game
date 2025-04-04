@@ -35,7 +35,7 @@ jobs:
         run: |
           docker compose build
           docker tag mydockerhubusername/math-game:latest ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/math-game:${{ github.sha }}
-          docker tag mydockerhubusername/math-game:latest ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/math-game:${{ github.sha }}
+          docker pull postgres:13
           docker tag postgres:13 ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }}
           docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/math-game:${{ github.sha }}
           docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }}
