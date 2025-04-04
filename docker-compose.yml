@@ -17,7 +17,8 @@ services:
         condition: service_healthy
     volumes:
       - ./logs:/mnt/logs
-    command: ["sh", "-c", "python init_db.py && gunicorn --bind 0.0.0.0:8080 app:app"]
+    command: ["sh", "-c", "./wait-for-it.sh db:5432 -- python init_db.py && gunicorn --bind 0.0.0.0:8080 app:app"]
+
 
   db:
     image: postgres:13
