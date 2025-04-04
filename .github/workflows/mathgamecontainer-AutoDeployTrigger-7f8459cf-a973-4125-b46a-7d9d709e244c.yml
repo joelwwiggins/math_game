@@ -33,7 +33,7 @@ jobs:
 
       - name: Build and push images
         run: |
-          docker-compose build
+          docker compose build
           docker tag ${{ github.workspace }}_web ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }}
           docker tag postgres:13 ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }}
           docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }}
