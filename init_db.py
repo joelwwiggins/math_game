@@ -11,9 +11,12 @@ logger = logging.getLogger(__name__)
 
 def get_db_connection():
     """Get a connection to the PostgreSQL database."""
-    max_retries = 5
-    retry_delay = 2  # seconds
+    max_retries = 10
+    retry_delay = 5  # seconds
 
+    logger.info(f"Attempting to connect to database at {os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}")
+    logger.info(f"Using database: {os.getenv('POSTGRES_DB')}, user: {os.getenv('POSTGRES_USER')}")
+    
     for attempt in range(max_retries):
         try:
             conn = psycopg2.connect(
@@ -23,14 +26,16 @@ def get_db_connection():
                 host=os.getenv('POSTGRES_HOST', 'db'),
                 port=os.getenv('POSTGRES_PORT', '5432')
             )
-            logger.info("Successfully connected to the database")
+            logger.info(f"Successfully connected to the database on attempt {attempt + 1}")
             return conn
         except psycopg2.OperationalError as e:
+            logger.warning(f"Connection attempt {attempt + 1} failed: {str(e)}")
             if attempt < max_retries - 1:
-                logger.warning(f"Connection attempt {attempt + 1} failed. Retrying in {retry_delay} seconds...")
+                logger.warning(f"Retrying in {retry_delay} seconds...")
                 time.sleep(retry_delay)
             else:
                 logger.error(f"Failed to connect to the database after {max_retries} attempts")
+                logger.error(f"Last error: {str(e)}")
                 raise
 
 def init_db():
