@@ -190,6 +190,7 @@ def teardown_db(_exception):
 
 @app.route('/health', methods=['GET'])
 def health():
+    """Return a simple health check response."""
     return "OK", 200
 
 if __name__ == '__main__':
