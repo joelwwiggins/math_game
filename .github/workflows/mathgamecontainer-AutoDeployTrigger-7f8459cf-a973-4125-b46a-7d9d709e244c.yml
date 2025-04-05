@@ -116,5 +116,11 @@ jobs:
           configuration.volumes='[{"name":"mathgamevolumemount","storageType":"AzureFile","azureFile":{"shareName":"${{ secrets.FILE_SHARE_NAME }}","storageAccountName":"${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}","storageAccountKey":"${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"}}]' \
           configuration.volumeMounts='[{"mountPath":"/mnt/logs","volumeName":"mathgamevolumemount"}]'
 
+      - name: Fetch logs for debugging - Web App
+        run: az containerapp logs show --name mathgame-web --resource-group mathgameresource --tail
+
+      - name: Fetch logs for debugging - DB App
+        run: az containerapp logs show --name mathgame-db --resource-group mathgameresource --tail
+
       - name: Clean up unused Docker images
         run: docker image prune -f
