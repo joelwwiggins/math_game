@@ -17,6 +17,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Validate Docker Compose file
+        run: docker compose config
+
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -34,7 +37,6 @@ jobs:
       - name: Build and push images
         run: |
           docker compose build
-          # Tag the web image with the same name for both build and deploy steps.
           docker tag mydockerhubusername/math-game:latest ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }}
           docker pull postgres:13
           docker tag postgres:13 ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }}
@@ -57,7 +59,7 @@ jobs:
               --name mathgame-db \
               --resource-group mathgameresource \
               --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
-              --environment ${{ secrets.CONTAINER_APP_ENVIRONMENT_NAME }} \
+              --environment my-container-app-environment \
               --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
               --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
               --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
@@ -88,7 +90,7 @@ jobs:
               --name mathgame-web \
               --resource-group mathgameresource \
               --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }} \
-              --environment ${{ secrets.CONTAINER_APP_ENVIRONMENT_NAME }} \
+              --environment my-container-app-environment \
               --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
               --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
               --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
@@ -110,3 +112,6 @@ jobs:
           az containerapp update -n mathgame-web -g mathgameresource --set \
           configuration.volumes='[{"name":"mathgamevolumemount","storageType":"AzureFile","azureFile":{"shareName":"${{ secrets.FILE_SHARE_NAME }}","storageAccountName":"${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}","storageAccountKey":"${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"}}]' \
           configuration.volumeMounts='[{"mountPath":"/mnt/logs","volumeName":"mathgamevolumemount"}]'
+
+      - name: Clean up unused Docker images
+        run: docker image prune -f
