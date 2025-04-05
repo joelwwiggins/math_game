@@ -60,7 +60,7 @@ jobs:
               --name mathgame-db \
               --resource-group mathgameresource \
               --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
-              --environment my-container-app-environment \
+              --environment mathgame-db-env \
               --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
               --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
               --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
@@ -91,7 +91,7 @@ jobs:
               --name mathgame-web \
               --resource-group mathgameresource \
               --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }} \
-              --environment my-container-app-environment \
+              --environment mathgame-db-env \
               --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
               --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
               --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
