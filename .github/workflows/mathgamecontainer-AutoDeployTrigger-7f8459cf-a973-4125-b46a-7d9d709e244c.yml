@@ -69,7 +69,9 @@ jobs:
                 POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
                 POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
               --cpu 0.5 --memory 1.0Gi \
-              --min-replicas 1 --max-replicas 1
+              --min-replicas 1 --max-replicas 1 \
+              --target-port 5432 \
+              --ingress internal
           fi
 
       - name: Deploy or update Web Container App
