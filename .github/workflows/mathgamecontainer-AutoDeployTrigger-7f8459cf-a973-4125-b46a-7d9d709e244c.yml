@@ -51,6 +51,7 @@ jobs:
               --name mathgame-db \
               --resource-group mathgameresource \
               --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
+              --ingress internal \
               --set-env-vars \
                 POSTGRES_DB=math_game \
                 POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
