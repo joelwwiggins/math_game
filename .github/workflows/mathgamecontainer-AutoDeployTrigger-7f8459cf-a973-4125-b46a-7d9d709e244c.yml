@@ -56,6 +56,7 @@ jobs:
                 POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
                 POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
               --set configuration.ingress.external=false \
+              --set configuration.ingress.targetPort=5432 \
               --set configuration.probes.liveness[0].tcpSocket.port=5432 \
               --set configuration.probes.liveness[0].initialDelaySeconds=30 \
               --set configuration.probes.liveness[0].periodSeconds=10
