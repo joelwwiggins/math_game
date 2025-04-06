@@ -2,6 +2,7 @@ import unittest
 import os
 import sqlite3
 from app import app, get_db, init_db, close_db, create_player
+import tempfile
 
 class MathGameTestCase(unittest.TestCase):
     def setUp(self):
@@ -9,31 +10,30 @@ class MathGameTestCase(unittest.TestCase):
         self.app = app.test_client()
         self.app.testing = True
         
-        # For testing only, temporarily modify DB host if it's not available
-        # This allows tests to run even when the DB container isn't present
-        self.original_db_host = os.environ.get('POSTGRES_HOST')
-        if self.original_db_host == 'mathgame-db':
-            # During tests, set to localhost or mock
-            os.environ['POSTGRES_HOST'] = 'db'  
-
+        # Create a temporary SQLite database for testing
+        self.db_fd, self.db_path = tempfile.mkstemp()
+        
+        # Configure app to use SQLite for testing
+        app.config['TESTING'] = True
+        os.environ['TESTING'] = 'True'
+        os.environ['TEST_DB_PATH'] = self.db_path
+        
         with app.app_context():
             init_db()
             self.player_id = create_player('Test Player')
 
     def tearDown(self):
         """Tear down test environment."""
-        # Restore original DB host if we changed it
-        if self.original_db_host:
-            os.environ['POSTGRES_HOST'] = self.original_db_host
-
         with app.app_context():
-            db = get_db()
-            with db.cursor() as cursor:
-                cursor.execute("DELETE FROM attempts")
-                cursor.execute("DELETE FROM games")
-                cursor.execute("DELETE FROM players")
-            db.commit()
             close_db()
+        
+        # Remove the temporary database
+        os.close(self.db_fd)
+        os.unlink(self.db_path)
+        
+        # Reset environment variables
+        os.environ.pop('TESTING', None)
+        os.environ.pop('TEST_DB_PATH', None)
 
     def test_index_page(self):
         """Test the index page."""
