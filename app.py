@@ -233,10 +233,10 @@ def teardown_db(_exception):
     """Teardown the database connection."""
     close_db()
 
-@app.route('/health', methods=['GET'])
-def health():
-    """Return a simple health check response."""
-    return "OK", 200
+# @app.route('/health', methods=['GET'])
+# def health():
+#     """Return a simple health check response."""
+#     return "OK", 200
 
 if __name__ == '__main__':
     init_db()
