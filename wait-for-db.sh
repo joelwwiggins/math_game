@@ -3,13 +3,13 @@ set -e
 
 host="${POSTGRES_HOST:-mathgame-db}"
 port="${POSTGRES_PORT:-5432}"
-max_attempts=20
+max_attempts=30
 attempt=1
 
 echo "Waiting for $host:$port to be ready..."
 
 while [ $attempt -le $max_attempts ]; do
-  if nc -z "$host" "$port" >/dev/null 2>&1; then
+  if nc -z -v "$host" "$port" 2>&1 | tee /dev/stderr; then
     echo "Database is ready!"
     exit 0
   fi
