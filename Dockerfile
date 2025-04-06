@@ -4,10 +4,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN mkdir -p /mnt/db /mnt/logs
-# Install PostgreSQL client
-RUN apt-get update && apt-get install -y postgresql-client
-# Make the initialization script executable
-RUN chmod +x db_init.sh
+
+# Install PostgreSQL client and network tools
+RUN apt-get update && apt-get install -y postgresql-client iputils-ping netcat-openbsd dnsutils
+
 EXPOSE 8080
-# Use the db_init.sh script as entry point
-CMD ["./db_init.sh", "gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
+
+# Run the init_db.py script then start the Gunicorn server
+CMD ["sh", "-c", "python init_db.py && gunicorn --bind 0.0.0.0:8080 app:app"]

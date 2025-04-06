@@ -1,4 +1,5 @@
-version: '3.8'
+
+
 services:
   web:
     build: .
@@ -12,13 +13,9 @@ services:
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
       - SECRET_KEY=${SECRET_KEY}
-    depends_on:
-      db:
-        condition: service_healthy
     volumes:
       - ./logs:/mnt/logs
-    command: ["sh", "-c", "python init_db.py && gunicorn --bind 0.0.0.0:8080 app:app"]
-
+    command: gunicorn --bind 0.0.0.0:8080 app:app
 
   db:
     image: postgres:13
@@ -28,11 +25,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d math_game"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
 volumes:
   postgres_data:

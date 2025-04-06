@@ -2,18 +2,15 @@ name: Deploy to Azure Container Apps
 
 on:
   push:
-    branches: 
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     permissions: 
       id-token: write
       contents: read
-
-      
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -44,85 +41,43 @@ jobs:
           docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }}
           docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }}
 
-      - name: Deploy or update DB Container App
+      - name: Deploy DB Container App
         run: |
-          if az containerapp show --name mathgame-db --resource-group mathgameresource &>/dev/null; then
-            az containerapp update \
-              --name mathgame-db \
-              --resource-group mathgameresource \
-              --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
-              --set-env-vars \
-                POSTGRES_DB=math_game \
-                POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
-                POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
-              --set configuration.ingress.external=false \
-              --set configuration.ingress.targetPort=5432 \
-              --set configuration.probes.liveness[0].tcpSocket.port=5432 \
-              --set configuration.probes.liveness[0].initialDelaySeconds=30 \
-              --set configuration.probes.liveness[0].periodSeconds=10
-          else
-            az containerapp create \
-              --name mathgame-db \
-              --resource-group mathgameresource \
-              --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
-              --environment mathgame-db-env \
-              --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
-              --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
-              --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
-              --env-vars \
-                POSTGRES_DB=math_game \
-                POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
-                POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
-              --cpu 0.5 --memory 1.0Gi \
-              --min-replicas 1 --max-replicas 1 \
-              --target-port 5432 \
-              --ingress internal \
-              --set configuration.probes.liveness[0].tcpSocket.port=5432 \
-              --set configuration.probes.liveness[0].initialDelaySeconds=30 \
-              --set configuration.probes.liveness[0].periodSeconds=10
+          az containerapp update \
+            --name mathgame-db \
+            --resource-group mathgameresource \
+            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
+            --set-env-vars POSTGRES_DB=math_game POSTGRES_USER=${{ secrets.POSTGRES_USER }} POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            --set configuration.ingress.external=false --set configuration.ingress.targetPort=5432 || \
+          az containerapp create \
+            --name mathgame-db \
+            --resource-group mathgameresource \
+            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
+            --environment mathgame-db-env \
+            --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
+            --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
+            --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
+            --env-vars POSTGRES_DB=math_game POSTGRES_USER=${{ secrets.POSTGRES_USER }} POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+            --cpu 0.5 --memory 1.0Gi --min-replicas 1 --max-replicas 1 --target-port 5432 --ingress internal
 
-      - name: Deploy or update Web Container App
+      - name: Deploy Web Container App
         run: |
-          if az containerapp show --name mathgame-web --resource-group mathgameresource &>/dev/null; then
-            az containerapp update \
-              --name mathgame-web \
-              --resource-group mathgameresource \
-              --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }} \
-              --set-env-vars \
-                POSTGRES_DB=math_game \
-                POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
-                POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
-                POSTGRES_HOST=mathgame-db \
-                POSTGRES_PORT=5432 \
-                SECRET_KEY=${{ secrets.SECRET_KEY }}
-          else
-            az containerapp create \
-              --name mathgame-web \
-              --resource-group mathgameresource \
-              --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }} \
-              --environment mathgame-db-env \
-              --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
-              --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
-              --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
-              --env-vars \
-                POSTGRES_DB=math_game \
-                POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
-                POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
-                POSTGRES_HOST=mathgame-db \
-                POSTGRES_PORT=5432 \
-                SECRET_KEY=${{ secrets.SECRET_KEY }} \
-              --cpu 0.5 --memory 1.0Gi \
-              --min-replicas 1 --max-replicas 3 \
-              --target-port 8080 \
-              --ingress external
-          fi
+          az containerapp update \
+            --name mathgame-web \
+            --resource-group mathgameresource \
+            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }} \
+            --set-env-vars POSTGRES_DB=math_game POSTGRES_USER=${{ secrets.POSTGRES_USER }} POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} POSTGRES_HOST=mathgame-db POSTGRES_PORT=5432 SECRET_KEY=${{ secrets.SECRET_KEY }} || \
+          az containerapp create \
+            --name mathgame-web \
+            --resource-group mathgameresource \
+            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }} \
+            --environment mathgame-db-env \
+            --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
+            --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
+            --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
+            --env-vars POSTGRES_DB=math_game POSTGRES_USER=${{ secrets.POSTGRES_USER }} POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} POSTGRES_HOST=mathgame-db POSTGRES_PORT=5432 SECRET_KEY=${{ secrets.SECRET_KEY }} \
+            --cpu 0.5 --memory 1.0Gi --min-replicas 1 --max-replicas 3 --target-port 8080 --ingress external
 
       - name: Set Volume Mount for Web App
         run: |
-          az containerapp update -n mathgame-web -g mathgameresource --set \
-          configuration.volumes='[{"name":"mathgamevolumemount","storageType":"AzureFile","azureFile":{"shareName":"${{ secrets.FILE_SHARE_NAME }}","storageAccountName":"${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}","storageAccountKey":"${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"}}]' \
-          configuration.volumeMounts='[{"mountPath":"/mnt/logs","volumeName":"mathgamevolumemount"}]'
-
-
-      - name: Clean up unused Docker images
-        run: docker image prune -f
+          az containerapp update -n mathgame-web -g mathgameresource --set configuration.volumes='[{"name":"mathgamevolumemount","storageType":"AzureFile","azureFile":{"shareName":"${{ secrets.FILE_SHARE_NAME }}","storageAccountName":"${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}","storageAccountKey":"${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}"}}]' configuration.volumeMounts='[{"mountPath":"/mnt/logs","volumeName":"mathgamevolumemount"}]'
