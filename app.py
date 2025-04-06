@@ -40,7 +40,7 @@ def get_db():
             )
             app.extensions['database_connection'].row_factory = sqlite3.Row
         return app.extensions['database_connection']
-    
+
     # Use PostgreSQL for production
     if 'database_connection' not in app.extensions:
         app.extensions['database_connection'] = psycopg2.connect(
@@ -135,12 +135,12 @@ def get_attempts(game_id):
         
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
-            cursor.execute("SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id", 
+            cursor.execute("SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id",
                           (game_id,))
             return [dict(row) for row in cursor.fetchall()]
         
         # For PostgreSQL
-        cursor.execute("SELECT answer_time FROM attempts WHERE game_id = %s ORDER BY id", 
+        cursor.execute("SELECT answer_time FROM attempts WHERE game_id = %s ORDER BY id",
                       (game_id,))
         return cursor.fetchall()
     except (psycopg2.Error, sqlite3.Error) as error:
@@ -177,13 +177,13 @@ def create_game(player_id):
         
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
-            cursor.execute("INSERT INTO games (player_id, score) VALUES (?, 0)", 
+            cursor.execute("INSERT INTO games (player_id, score) VALUES (?, 0)",
                           (player_id,))
             game_id = cursor.lastrowid
         else:
             # For PostgreSQL
             cursor.execute(
-                "INSERT INTO games (player_id, score) VALUES (%s, 0) RETURNING id", 
+                "INSERT INTO games (player_id, score) VALUES (%s, 0) RETURNING id",
                 (player_id,)
             )
             game_id = cursor.fetchone()[0]
@@ -209,7 +209,7 @@ def update_score(game_id, score):
             cursor.execute("UPDATE games SET score = ? WHERE id = ?", (score, game_id))
         else:
             cursor.execute("UPDATE games SET score = %s WHERE id = %s", (score, game_id))
-            
+        
         database_conn.commit()
         return True
     except (psycopg2.Error, sqlite3.Error) as error:
@@ -225,13 +225,13 @@ def record_attempt(game_id, answer_time):
         
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
-            cursor.execute("INSERT INTO attempts (game_id, answer_time) VALUES (?, ?)", 
+            cursor.execute("INSERT INTO attempts (game_id, answer_time) VALUES (?, ?)",
                           (game_id, answer_time))
         else:
             # For PostgreSQL
             cursor.execute("INSERT INTO attempts (game_id, answer_time) VALUES (%s, %s)",
                           (game_id, answer_time))
-            
+        
         database_conn.commit()
         return True
     except (psycopg2.Error, sqlite3.Error) as error:
