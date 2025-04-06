@@ -2,7 +2,7 @@
 set -e
 
 host="${POSTGRES_HOST:-mathgame-db}"
-port="${POSTGRES_PORT:-5432}"
+port="${POSTGRES_PORT:-5432}"  # Back to 5432
 max_attempts=30
 attempt=1
 

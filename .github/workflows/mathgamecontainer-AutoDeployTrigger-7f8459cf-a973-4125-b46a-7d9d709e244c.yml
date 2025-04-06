@@ -46,9 +46,6 @@ jobs:
 
       - name: Deploy DB Container App
         run: |
-          # Delete existing app to force recreation (optional, comment out if not needed)
-          # az containerapp delete --name mathgame-db --resource-group mathgameresource --yes || true
-          
           az containerapp create \
             --name mathgame-db \
             --resource-group mathgameresource \
@@ -63,12 +60,7 @@ jobs:
             --target-port 5432 \
             --ingress internal \
             --revision-suffix "v${{ github.run_id }}" \
-            --set "probes[0].type=tcp" \
-            --set "probes[0].tcpSocket.port=5432" \
-            --set "probes[0].initialDelaySeconds=30" \
-            --set "probes[0].periodSeconds=10" \
-            --set "probes[0].timeoutSeconds=5" \
-            --set "probes[0].failureThreshold=3" \
+            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":30,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]" \
           || echo "Container app exists, updating..." && \
           az containerapp update \
             --name mathgame-db \
@@ -76,12 +68,7 @@ jobs:
             --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
             --set-env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" \
             --revision-suffix "v${{ github.run_id }}" \
-            --set "probes[0].type=tcp" \
-            --set "probes[0].tcpSocket.port=5432" \
-            --set "probes[0].initialDelaySeconds=30" \
-            --set "probes[0].periodSeconds=10" \
-            --set "probes[0].timeoutSeconds=5" \
-            --set "probes[0].failureThreshold=3"
+            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":30,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
 
       - name: Deploy Web Container App
         run: |
@@ -99,12 +86,7 @@ jobs:
             --target-port 8080 \
             --ingress external \
             --revision-suffix "v${{ github.run_id }}" \
-            --set "probes[0].type=tcp" \
-            --set "probes[0].tcpSocket.port=8080" \
-            --set "probes[0].initialDelaySeconds=20" \
-            --set "probes[0].periodSeconds=10" \
-            --set "probes[0].timeoutSeconds=5" \
-            --set "probes[0].failureThreshold=3" \
+            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":8080},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]" \
           || echo "Container app exists, updating..." && \
           az containerapp update \
             --name mathgame-web \
@@ -112,12 +94,7 @@ jobs:
             --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }} \
             --set-env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" "POSTGRES_HOST=mathgame-db" "POSTGRES_PORT=5432" "SECRET_KEY=${{ secrets.SECRET_KEY }}" \
             --revision-suffix "v${{ github.run_id }}" \
-            --set "probes[0].type=tcp" \
-            --set "probes[0].tcpSocket.port=8080" \
-            --set "probes[0].initialDelaySeconds=20" \
-            --set "probes[0].periodSeconds=10" \
-            --set "probes[0].timeoutSeconds=5" \
-            --set "probes[0].failureThreshold=3"
+            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":8080},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
 
       - name: Set Volume Mount for Web App
         run: |
