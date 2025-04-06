@@ -62,8 +62,9 @@ jobs:
               --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
               --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
               --env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" \
-              --cpu 0.5 --memory 1.0Gi --min-replicas 1 --max-replicas 1 \
-              --target-port 5432 --ingress internal
+              --cpu 0.75 --memory 1.5Gi --min-replicas 1 --max-replicas 1 \
+              --target-port 5432 --ingress internal \
+              --set "probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":15,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
           fi
 
       - name: Deploy Web Container App
