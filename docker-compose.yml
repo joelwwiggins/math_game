@@ -10,7 +10,7 @@ services:
       - POSTGRES_DB=math_game
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_HOST=db
+      - POSTGRES_HOST=mathgame-db
       - POSTGRES_PORT=5432
       - SECRET_KEY=${SECRET_KEY}
     volumes:
