@@ -66,6 +66,14 @@ jobs:
               --target-port 5432 --ingress internal \
               --set "probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":15,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
           fi
+      - name: Debug DB Connectivity
+        run: |
+          az containerapp exec --name mathgame-web --resource-group mathgameresource --command "nc -z mathgame-db 5432 && echo 'DB is reachable' || echo 'DB not reachable'"    
+
+
+
+
+
 
       - name: Deploy Web Container App
         run: |
