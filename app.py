@@ -131,13 +131,11 @@ def get_attempts(game_id):
     try:
         database_conn = get_db()
         cursor = database_conn.cursor()
-        
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
             cursor.execute("SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id",
                            (game_id,))
             return [dict(row) for row in cursor.fetchall()]
-        
         # For PostgreSQL
         cursor.execute("SELECT answer_time FROM attempts WHERE game_id = %s ORDER BY id",
                       (game_id,))
@@ -151,7 +149,6 @@ def create_player(name):
     try:
         database_conn = get_db()
         cursor = database_conn.cursor()
-        
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
             cursor.execute("INSERT INTO players (name) VALUES (?)", (name,))
@@ -160,7 +157,6 @@ def create_player(name):
             # For PostgreSQL
             cursor.execute("INSERT INTO players (name) VALUES (%s) RETURNING id", (name,))
             player_id = cursor.fetchone()[0]
-        
         database_conn.commit()
         return player_id
     except (psycopg2.Error, sqlite3.Error) as error:
@@ -173,7 +169,6 @@ def create_game(player_id):
     try:
         database_conn = get_db()
         cursor = database_conn.cursor()
-        
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
             cursor.execute("INSERT INTO games (player_id, score) VALUES (?, 0)",
@@ -186,7 +181,6 @@ def create_game(player_id):
                 (player_id,)
             )
             game_id = cursor.fetchone()[0]
-        
         database_conn.commit()
         return game_id
     except (psycopg2.Error, sqlite3.Error) as error:
@@ -202,13 +196,11 @@ def update_score(game_id, score):
     try:
         database_conn = get_db()
         cursor = database_conn.cursor()
-        
         # Same for both SQLite and PostgreSQL
         if os.environ.get('TESTING') == 'True':
             cursor.execute("UPDATE games SET score = ? WHERE id = ?", (score, game_id))
         else:
             cursor.execute("UPDATE games SET score = %s WHERE id = %s", (score, game_id))
-        
         database_conn.commit()
         return True
     except (psycopg2.Error, sqlite3.Error) as error:
