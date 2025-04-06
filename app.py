@@ -40,7 +40,6 @@ def get_db():
             )
             app.extensions['database_connection'].row_factory = sqlite3.Row
         return app.extensions['database_connection']
-
     # Use PostgreSQL for production
     if 'database_connection' not in app.extensions:
         app.extensions['database_connection'] = psycopg2.connect(
@@ -136,7 +135,7 @@ def get_attempts(game_id):
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
             cursor.execute("SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id",
-                          (game_id,))
+                           (game_id,))
             return [dict(row) for row in cursor.fetchall()]
         
         # For PostgreSQL
