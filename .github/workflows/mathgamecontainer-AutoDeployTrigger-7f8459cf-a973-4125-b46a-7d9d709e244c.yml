@@ -51,7 +51,8 @@ jobs:
               --name mathgame-db \
               --resource-group mathgameresource \
               --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
-              --set-env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}"
+              --set-env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" \
+              --set "probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
           else
             az containerapp create \
               --name mathgame-db \
@@ -99,10 +100,10 @@ jobs:
 
       - name: Check DB Logs
         run: |
-          sleep 30  # Wait for DB to stabilize
+          sleep 30
           az containerapp logs show --name mathgame-db --resource-group mathgameresource --tail 100 || echo "Failed to retrieve DB logs, continuing..."
 
       - name: Check Web App Logs
         run: |
-          sleep 30  # Wait for web app to start
-          az containerapp logs show --name mathgame-web --resource-group mathgameresource --tail 100 || echo "Failed to retrieve web logs, continuing..."
+          sleep 60
+          az containerapp logs show --name mathgame-web --resource-group mathgameresource --tail 200 || echo "Failed to retrieve web logs, continuing..."
