@@ -46,27 +46,27 @@ jobs:
 
       - name: Deploy DB Container App
         run: |
-          if az containerapp show --name mathgame-db --resource-group mathgameresource > /dev/null 2>&1; then
-            az containerapp update \
-              --name mathgame-db \
-              --resource-group mathgameresource \
-              --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
-              --set-env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" \
-              --set "probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
-          else
-            az containerapp create \
-              --name mathgame-db \
-              --resource-group mathgameresource \
-              --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
-              --environment mathgame-db-env \
-              --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
-              --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
-              --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
-              --env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" \
-              --cpu 0.75 --memory 1.5Gi --min-replicas 1 --max-replicas 1 \
-              --target-port 5432 --ingress internal \
-              --set "probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
-          fi
+          az containerapp create \
+            --name mathgame-db \
+            --resource-group mathgameresource \
+            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
+            --environment mathgame-db-env \
+            --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
+            --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
+            --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
+            --env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" \
+            --cpu 0.75 --memory 1.5Gi --min-replicas 1 --max-replicas 1 \
+            --target-port 5432 --ingress internal \
+            --revision-suffix "v${{ github.run_id }}" \
+            --set "probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":30,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]" \
+          || echo "Container app already exists, updating..." && \
+          az containerapp update \
+            --name mathgame-db \
+            --resource-group mathgameresource \
+            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
+            --set-env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" \
+            --revision-suffix "v${{ github.run_id }}" \
+            --set "probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":30,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
 
       - name: Deploy Web Container App
         run: |
@@ -100,10 +100,10 @@ jobs:
 
       - name: Check DB Logs
         run: |
-          sleep 30
-          az containerapp logs show --name mathgame-db --resource-group mathgameresource --tail 100 || echo "Failed to retrieve DB logs, continuing..."
+          sleep 60  # Increased to ensure DB stabilizes
+          az containerapp logs show --name mathgame-db --resource-group mathgameresource --tail 200 || echo "Failed to retrieve DB logs, continuing..."
 
       - name: Check Web App Logs
         run: |
-          sleep 60
+          sleep 90  # Increased to give web app time to connect
           az containerapp logs show --name mathgame-web --resource-group mathgameresource --tail 200 || echo "Failed to retrieve web logs, continuing..."
