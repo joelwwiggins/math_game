@@ -1,12 +1,12 @@
 "main application file"
 
 import logging
-import random
-import time
 import os
-import psycopg2
+import random
 import sqlite3
+import time
 
+import psycopg2
 from psycopg2.extras import DictCursor
 from flask import Flask, render_template, request, redirect, url_for, session
 from init_db import init_db as initialize_database
@@ -130,26 +130,28 @@ def results():
 def get_attempts(game_id):
     """Get all attempts for a game."""
     try:
-        db = get_db()
-        cursor = db.cursor()
+        database_conn = get_db()
+        cursor = database_conn.cursor()
         
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
-            cursor.execute("SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id", (game_id,))
+            cursor.execute("SELECT answer_time FROM attempts WHERE game_id = ? ORDER BY id", 
+                          (game_id,))
             return [dict(row) for row in cursor.fetchall()]
-        else:
-            # For PostgreSQL
-            cursor.execute("SELECT answer_time FROM attempts WHERE game_id = %s ORDER BY id", (game_id,))
-            return cursor.fetchall()
-    except Exception as e:
-        logger.error(f"Error getting attempts for game_id '{game_id}': {str(e)}")
+        
+        # For PostgreSQL
+        cursor.execute("SELECT answer_time FROM attempts WHERE game_id = %s ORDER BY id", 
+                      (game_id,))
+        return cursor.fetchall()
+    except (psycopg2.Error, sqlite3.Error) as error:
+        logger.error("Error getting attempts for game_id '%s': %s", game_id, str(error))
         return []
 
 def create_player(name):
     """Create a new player and return the player ID."""
     try:
-        db = get_db()
-        cursor = db.cursor()
+        database_conn = get_db()
+        cursor = database_conn.cursor()
         
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
@@ -160,43 +162,47 @@ def create_player(name):
             cursor.execute("INSERT INTO players (name) VALUES (%s) RETURNING id", (name,))
             player_id = cursor.fetchone()[0]
         
-        db.commit()
+        database_conn.commit()
         return player_id
-    except Exception as e:
-        logger.error(f"Error creating player '{name}': {str(e)}")
-        db.rollback()
+    except (psycopg2.Error, sqlite3.Error) as error:
+        logger.error("Error creating player '%s': %s", name, str(error))
+        database_conn.rollback()
         return None
 
 def create_game(player_id):
     """Create a new game for a player and return the game ID."""
     try:
-        db = get_db()
-        cursor = db.cursor()
+        database_conn = get_db()
+        cursor = database_conn.cursor()
         
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
-            cursor.execute("INSERT INTO games (player_id, score) VALUES (?, 0)", (player_id,))
+            cursor.execute("INSERT INTO games (player_id, score) VALUES (?, 0)", 
+                          (player_id,))
             game_id = cursor.lastrowid
         else:
             # For PostgreSQL
-            cursor.execute("INSERT INTO games (player_id, score) VALUES (%s, 0) RETURNING id", (player_id,))
+            cursor.execute(
+                "INSERT INTO games (player_id, score) VALUES (%s, 0) RETURNING id", 
+                (player_id,)
+            )
             game_id = cursor.fetchone()[0]
         
-        db.commit()
+        database_conn.commit()
         return game_id
-    except Exception as e:
+    except (psycopg2.Error, sqlite3.Error) as error:
         if player_id:
-            logger.error(f"Error creating game for player '{player_id}': {str(e)}")
+            logger.error("Error creating game for player '%s': %s", player_id, str(error))
         else:
-            logger.error(f"Error creating game, no player_id provided: {str(e)}")
-        db.rollback()
+            logger.error("Error creating game, no player_id provided: %s", str(error))
+        database_conn.rollback()
         return None
 
 def update_score(game_id, score):
     """Update the score for a game."""
     try:
-        db = get_db()
-        cursor = db.cursor()
+        database_conn = get_db()
+        cursor = database_conn.cursor()
         
         # Same for both SQLite and PostgreSQL
         if os.environ.get('TESTING') == 'True':
@@ -204,18 +210,18 @@ def update_score(game_id, score):
         else:
             cursor.execute("UPDATE games SET score = %s WHERE id = %s", (score, game_id))
             
-        db.commit()
+        database_conn.commit()
         return True
-    except Exception as e:
-        logger.error(f"Error updating score for game_id '{game_id}': {str(e)}")
-        db.rollback()
+    except (psycopg2.Error, sqlite3.Error) as error:
+        logger.error("Error updating score for game_id '%s': %s", game_id, str(error))
+        database_conn.rollback()
         return False
 
 def record_attempt(game_id, answer_time):
     """Record an attempt for a game."""
     try:
-        db = get_db()
-        cursor = db.cursor()
+        database_conn = get_db()
+        cursor = database_conn.cursor()
         
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
@@ -226,11 +232,11 @@ def record_attempt(game_id, answer_time):
             cursor.execute("INSERT INTO attempts (game_id, answer_time) VALUES (%s, %s)",
                           (game_id, answer_time))
             
-        db.commit()
+        database_conn.commit()
         return True
-    except Exception as e:
-        logger.error(f"Error recording attempt for game_id '{game_id}': {str(e)}")
-        db.rollback()
+    except (psycopg2.Error, sqlite3.Error) as error:
+        logger.error("Error recording attempt for game_id '%s': %s", game_id, str(error))
+        database_conn.rollback()
         return False
 
 @app.teardown_appcontext
