@@ -2,7 +2,7 @@ import multiprocessing
 
 # Gunicorn config variables
 workers = multiprocessing.cpu_count() * 2 + 1
-bind = "0.0.0.0:80"
+bind = "0.0.0.0:8080"
 timeout = 120
 keepalive = 5
 errorlog = "-"  # Log to stderr
