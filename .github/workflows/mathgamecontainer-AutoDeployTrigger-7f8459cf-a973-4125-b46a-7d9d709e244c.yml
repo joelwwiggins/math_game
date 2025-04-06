@@ -94,16 +94,10 @@ jobs:
           az containerapp update \
             --name mathgame-web \
             --resource-group mathgameresource \
-            --yaml ./containerapp-volume-config.yaml
-        # Create a separate YAML file (e.g., containerapp-volume-config.yaml) with:
-        # configuration:
-        #   volumes:
-        #     - name: mathgamevolumemount
-        #       storageType: AzureFile
-        #       azureFile:
-        #         shareName: ${{ secrets.FILE_SHARE_NAME }}
-        #         storageAccountName: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
-        #         storageAccountKey: ${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}
-        #   volumeMounts:
-        #     - mountPath: /mnt/logs
-        #       volumeName: mathgamevolumemount
+            --set configuration.volumes[0].name=mathgamevolumemount \
+            --set configuration.volumes[0].storageType=AzureFile \
+            --set configuration.volumes[0].azureFile.shareName=${{ secrets.FILE_SHARE_NAME }} \
+            --set configuration.volumes[0].azureFile.storageAccountName=${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }} \
+            --set configuration.volumes[0].azureFile.storageAccountKey=${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }} \
+            --set configuration.volumeMounts[0].mountPath=/mnt/logs \
+            --set configuration.volumeMounts[0].volumeName=mathgamevolumemount
