@@ -213,7 +213,6 @@ def record_attempt(game_id, answer_time):
     try:
         database_conn = get_db()
         cursor = database_conn.cursor()
-        
         # For SQLite (testing)
         if os.environ.get('TESTING') == 'True':
             cursor.execute("INSERT INTO attempts (game_id, answer_time) VALUES (?, ?)",
@@ -222,7 +221,6 @@ def record_attempt(game_id, answer_time):
             # For PostgreSQL
             cursor.execute("INSERT INTO attempts (game_id, answer_time) VALUES (%s, %s)",
                           (game_id, answer_time))
-        
         database_conn.commit()
         return True
     except (psycopg2.Error, sqlite3.Error) as error:
