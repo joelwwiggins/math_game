@@ -64,7 +64,7 @@ jobs:
               --env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" \
               --cpu 0.75 --memory 1.5Gi --min-replicas 1 --max-replicas 1 \
               --target-port 5432 --ingress internal \
-              --set "probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":15,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
+              --set "probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
           fi
 
       - name: Deploy Web Container App
@@ -97,7 +97,12 @@ jobs:
             --set "configuration.volumes=[{\"name\":\"mathgamevolumemount\",\"storageType\":\"AzureFile\",\"azureFile\":{\"shareName\":\"${{ secrets.FILE_SHARE_NAME }}\",\"storageAccountName\":\"${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}\",\"storageAccountKey\":\"${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}\"}}]" \
             --set "configuration.volumeMounts=[{\"mountPath\":\"/mnt/logs\",\"volumeName\":\"mathgamevolumemount\"}]"
 
+      - name: Check DB Logs
+        run: |
+          sleep 30  # Wait for DB to stabilize
+          az containerapp logs show --name mathgame-db --resource-group mathgameresource --tail 100 || echo "Failed to retrieve DB logs, continuing..."
+
       - name: Check Web App Logs
         run: |
-          sleep 30  # Give the web app time to start
-          az containerapp logs show --name mathgame-web --resource-group mathgameresource --tail 100 || echo "Failed to retrieve logs, continuing..."
+          sleep 30  # Wait for web app to start
+          az containerapp logs show --name mathgame-web --resource-group mathgameresource --tail 100 || echo "Failed to retrieve web logs, continuing..."
