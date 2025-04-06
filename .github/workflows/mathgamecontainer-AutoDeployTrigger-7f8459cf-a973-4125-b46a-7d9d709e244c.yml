@@ -66,14 +66,6 @@ jobs:
               --target-port 5432 --ingress internal \
               --set "probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":15,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
           fi
-      - name: Debug DB Connectivity
-        run: |
-          az containerapp exec --name mathgame-web --resource-group mathgameresource --command "nc -z mathgame-db 5432 && echo 'DB is reachable' || echo 'DB not reachable'"    
-
-
-
-
-
 
       - name: Deploy Web Container App
         run: |
@@ -104,3 +96,8 @@ jobs:
             --resource-group mathgameresource \
             --set "configuration.volumes=[{\"name\":\"mathgamevolumemount\",\"storageType\":\"AzureFile\",\"azureFile\":{\"shareName\":\"${{ secrets.FILE_SHARE_NAME }}\",\"storageAccountName\":\"${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}\",\"storageAccountKey\":\"${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}\"}}]" \
             --set "configuration.volumeMounts=[{\"mountPath\":\"/mnt/logs\",\"volumeName\":\"mathgamevolumemount\"}]"
+
+      - name: Check Web App Logs
+        run: |
+          sleep 30  # Give the web app time to start
+          az containerapp logs show --name mathgame-web --resource-group mathgameresource --tail 100 || echo "Failed to retrieve logs, continuing..."
