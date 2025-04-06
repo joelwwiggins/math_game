@@ -37,7 +37,7 @@ jobs:
 
       - name: Build and push images
         run: |
-          docker compose build
+          docker compose build web
           docker tag mydockerhubusername/math-game:latest ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }}
           docker pull postgres:13
           docker tag postgres:13 ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }}
@@ -51,8 +51,7 @@ jobs:
               --name mathgame-db \
               --resource-group mathgameresource \
               --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
-              --set-env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" \
-              --set configuration.ingress.external=false configuration.ingress.targetPort=5432
+              --set-env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}"
           else
             az containerapp create \
               --name mathgame-db \

@@ -11,4 +11,4 @@ RUN apt-get update && apt-get install -y postgresql-client iputils-ping netcat-o
 EXPOSE 8080
 
 # Run the init_db.py script then start the Gunicorn server
-CMD ["sh", "-c", "python init_db.py && gunicorn --bind 0.0.0.0:8080 app:app"]
+CMD ["sh", "-c", "python init_db.py && gunicorn --config gunicorn.conf.py app:app"]
