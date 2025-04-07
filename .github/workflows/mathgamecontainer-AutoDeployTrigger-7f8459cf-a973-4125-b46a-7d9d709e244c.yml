@@ -44,6 +44,12 @@ jobs:
           docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }}
           docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }}
 
+      - name: Build and push Single Container image
+        run: |
+          docker compose build single
+          docker tag mydockerhubusername/math-game:latest ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-single:${{ github.sha }}
+          docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-single:${{ github.sha }}
+
       - name: Deploy DB Container App
         run: |
           az containerapp create \
@@ -96,6 +102,24 @@ jobs:
             --revision-suffix "v${{ github.run_id }}" \
             --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":8080},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
 
+      - name: Deploy Single Container App
+        run: |
+          az containerapp create \
+            --name mathgame-single \
+            --resource-group mathgameresource \
+            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-single:${{ github.sha }} \
+            --environment mathgame-db-env \
+            --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
+            --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
+            --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
+            --env-vars "SECRET_KEY=${{ secrets.SECRET_KEY }}" \
+            --cpu 1.0 --memory 2.0Gi \
+            --min-replicas 1 --max-replicas 3 \
+            --target-port 8080 \
+            --ingress external \
+            --revision-suffix "v${{ github.run_id }}" \
+            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":8080},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
+
       - name: Set Volume Mount for Web App
         run: |
           az containerapp update \
@@ -113,3 +137,8 @@ jobs:
         run: |
           sleep 90
           az containerapp logs show --name mathgame-web --resource-group mathgameresource --tail 200 || echo "Failed to retrieve web logs, continuing..."
+
+      - name: Check Container Logs
+        run: |
+          sleep 90
+          az containerapp logs show --name mathgame-single --resource-group mathgameresource --tail 200 || echo "Failed to retrieve logs, continuing..."
