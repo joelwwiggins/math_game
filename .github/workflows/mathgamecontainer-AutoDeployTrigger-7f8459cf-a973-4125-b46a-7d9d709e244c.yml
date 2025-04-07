@@ -2,7 +2,7 @@ name: Deploy to Azure Container Apps
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, fix-db-yaml-v2 ]
   workflow_dispatch:
 
 jobs:
@@ -35,72 +35,11 @@ jobs:
           username: ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }}
           password: ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }}
 
-      - name: Build and push images
-        run: |
-          docker compose build web
-          docker tag mydockerhubusername/math-game:latest ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }}
-          docker pull postgres:13
-          docker tag postgres:13 ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }}
-          docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }}
-          docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }}
-
       - name: Build and push Single Container image
         run: |
           docker compose build single
           docker tag mydockerhubusername/math-game:latest ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-single:${{ github.sha }}
           docker push ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-single:${{ github.sha }}
-
-      - name: Deploy DB Container App
-        run: |
-          az containerapp create \
-            --name mathgame-db \
-            --resource-group mathgameresource \
-            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
-            --environment mathgame-db-env \
-            --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
-            --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
-            --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
-            --env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" \
-            --cpu 0.75 --memory 1.5Gi \
-            --min-replicas 1 --max-replicas 1 \
-            --target-port 5432 \
-            --ingress internal \
-            --revision-suffix "v${{ github.run_id }}" \
-            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":30,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]" \
-          || echo "Container app exists, updating..." && \
-          az containerapp update \
-            --name mathgame-db \
-            --resource-group mathgameresource \
-            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-db:${{ github.sha }} \
-            --set-env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" \
-            --revision-suffix "v${{ github.run_id }}" \
-            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":5432},\"initialDelaySeconds\":30,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
-
-      - name: Deploy Web Container App
-        run: |
-          az containerapp create \
-            --name mathgame-web \
-            --resource-group mathgameresource \
-            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }} \
-            --environment mathgame-db-env \
-            --registry-server ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }} \
-            --registry-username ${{ secrets.MATHGAMECONTAINER_REGISTRY_USERNAME }} \
-            --registry-password ${{ secrets.MATHGAMECONTAINER_REGISTRY_PASSWORD }} \
-            --env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" "POSTGRES_HOST=mathgame-db" "POSTGRES_PORT=5432" "SECRET_KEY=${{ secrets.SECRET_KEY }}" \
-            --cpu 0.5 --memory 1.0Gi \
-            --min-replicas 1 --max-replicas 3 \
-            --target-port 8080 \
-            --ingress external \
-            --revision-suffix "v${{ github.run_id }}" \
-            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":8080},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]" \
-          || echo "Container app exists, updating..." && \
-          az containerapp update \
-            --name mathgame-web \
-            --resource-group mathgameresource \
-            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-web:${{ github.sha }} \
-            --set-env-vars "POSTGRES_DB=math_game" "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" "POSTGRES_HOST=mathgame-db" "POSTGRES_PORT=5432" "SECRET_KEY=${{ secrets.SECRET_KEY }}" \
-            --revision-suffix "v${{ github.run_id }}" \
-            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":8080},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
 
       - name: Deploy Single Container App
         run: |
@@ -118,25 +57,15 @@ jobs:
             --target-port 8080 \
             --ingress external \
             --revision-suffix "v${{ github.run_id }}" \
-            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":8080},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
-
-      - name: Set Volume Mount for Web App
-        run: |
+            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":8080},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]" \
+          || echo "Container app exists, updating..." && \
           az containerapp update \
-            --name mathgame-web \
+            --name mathgame-single \
             --resource-group mathgameresource \
-            --set "configuration.volumes=[{\"name\":\"mathgamevolumemount\",\"storageType\":\"AzureFile\",\"azureFile\":{\"shareName\":\"${{ secrets.FILE_SHARE_NAME }}\",\"storageAccountName\":\"${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}\",\"storageAccountKey\":\"${{ secrets.AZURE_STORAGE_ACCOUNT_KEY }}\"}}]" \
-            --set "configuration.volumeMounts=[{\"mountPath\":\"/mnt/logs\",\"volumeName\":\"mathgamevolumemount\"}]"
-
-      - name: Check DB Logs
-        run: |
-          sleep 60
-          az containerapp logs show --name mathgame-db --resource-group mathgameresource --tail 200 || echo "Failed to retrieve DB logs, continuing..."
-
-      - name: Check Web App Logs
-        run: |
-          sleep 90
-          az containerapp logs show --name mathgame-web --resource-group mathgameresource --tail 200 || echo "Failed to retrieve web logs, continuing..."
+            --image ${{ secrets.MATHGAMECONTAINER_REGISTRY_SERVER }}/mathgame-single:${{ github.sha }} \
+            --set-env-vars "SECRET_KEY=${{ secrets.SECRET_KEY }}" \
+            --revision-suffix "v${{ github.run_id }}" \
+            --set "template.containers[0].probes=[{\"type\":\"tcp\",\"tcpSocket\":{\"port\":8080},\"initialDelaySeconds\":20,\"periodSeconds\":10,\"timeoutSeconds\":5,\"failureThreshold\":3}]"
 
       - name: Check Container Logs
         run: |
